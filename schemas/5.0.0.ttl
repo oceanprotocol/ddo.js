@@ -1,0 +1,165 @@
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://www.w3.org/2018/credentials/v1> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+schema:VerifiableCredentialShape
+    sh:targetClass schema:VerifiableCredential ;
+    sh:property [
+        sh:path schema:type ;
+        sh:nodeKind sh:Literal ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:credentialSubject ;
+        sh:node schema:CredentialSubjectShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:issuer ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:version ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:proof ;
+        sh:node schema:ProofShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:additionalDdos ;
+        sh:node schema:AdditionalDdosShape ;
+        sh:maxCount 64 ;
+    ] ; .
+
+schema:CredentialSubjectShape
+    sh:targetClass schema:CredentialSubject ;
+    sh:property [
+        sh:path schema:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^did\\:op\\:(.*)$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:maxLength 71 ;
+        sh:minLength 71 ;
+    ] ;
+    sh:property [
+        sh:path schema:metadata ;
+        sh:node schema:MetadataShape ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:services ;
+        sh:node schema:ServiceShape ;
+        sh:minCount 1 ;
+        sh:maxCount 64 ;
+    ] ;
+    sh:property [
+        sh:path schema:credentials ;
+        sh:node schema:CredentialsShape ;
+        sh:maxCount 64 ;
+    ] ;
+    sh:property [
+        sh:path schema:chainId ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:nftAddress ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 42 ;
+        sh:maxLength 42 ;
+    ] ;
+    sh:property [
+        sh:path schema:event ;
+        sh:node schema:EventShape ;
+        sh:maxCount 1 ;
+    ] ; .
+
+schema:ProofShape
+    sh:property [
+        sh:path schema:type ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:proofPurpose ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:created ;
+        sh:datatype xsd:dateTime ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:verificationMethod ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:Jws ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ; .
+
+schema:EventShape
+    sh:property [
+        sh:path schema:txid ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:block ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:from ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:contract ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:datetime ;
+        sh:datatype xsd:dateTime ;
+        sh:maxCount 1 ;
+    ] ; .
+
+schema:AdditionalDdosShape
+    sh:property [
+        sh:path schema:type ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:data ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ; .
