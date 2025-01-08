@@ -13,8 +13,8 @@ import { Metadata as MetadataV5 } from '../@types/DOO5/Metadata';
 import { Service as ServiceV5 } from '../@types/DOO5/Service';
 import { Service as ServiceV4 } from '../@types/DOO5/Service';
 
-const CURRENT_VERSION = '5.0.0'
-const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0']
+const CURRENT_VERSION = '5.0.0';
+const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
 
 export abstract class DDOManager {
   private ddoData: Record<string, any>;
