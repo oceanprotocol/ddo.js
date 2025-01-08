@@ -8,23 +8,21 @@ import { Readable } from 'stream'
 import rdf from '@zazuko/env-node'
 import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
-import { VerifiableCredential } from './../@types/DOO5/VerifiableCredential';
-import { DDO } from '../@types/DDO4/DDO.js';
 
 const CURRENT_VERSION = '5.0.0'
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0']
 
 export abstract class DDOManager {
-  private ddoData: VerifiableCredential | DDO;
+  private ddoData: Record<string, any>;
 
-  public constructor(ddoData: VerifiableCredential | DDO) {
+  public constructor(ddoData: Record<string, any>) {
     this.ddoData = ddoData;
   }
 
-  abstract validate(): Promise<[boolean, Record<string, string[]>]>;
+  abstract validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]>;
   abstract makeDid(nftAddress: string, chainId: string): string;
 
-  getDDOData(): VerifiableCredential | DDO {
+  getDDOData(): Record<string, any> {
     return this.ddoData;
   }
 
@@ -43,13 +41,13 @@ export abstract class DDOManager {
     return schemaFilePath
   }
 
-  static getDDOClass(ddoData: VerifiableCredential | DDO): V4DDO | V5DDO {
+  static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
     const { version } = ddoData;
 
     if (version.startsWith('4')) {
-      return new V4DDO(ddoData as DDO);
+      return new V4DDO(ddoData);
     } else if (version.startsWith('5')) {
-      return new V5DDO(ddoData as VerifiableCredential);
+      return new V5DDO(ddoData);
     } else {
       throw new Error(`Unsupported DDO version: ${version}`);
     }
@@ -58,7 +56,7 @@ export abstract class DDOManager {
 
 // V4 DDO implementation
 export class V4DDO extends DDOManager {
-  public constructor(ddoData: DDO) {
+  public constructor(ddoData: Record<string, any>) {
     super(ddoData);
   }
 
@@ -71,26 +69,26 @@ export class V4DDO extends DDOManager {
     )
   }
 
-  async validate(): Promise<[boolean, Record<string, string[]>]> {
+  async validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {
     const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()))
     const extraErrors: Record<string, string[]> = {}
     ddoCopy['@type'] = 'DDO';
     ddoCopy['@context'] = {
       '@vocab': 'http://schema.org/'
     }
-    if (!ddoCopy.chainId) {
+    if (!chainId) {
       if (!('chainId' in extraErrors)) extraErrors.chainId = []
       extraErrors.chainId.push('chainId is missing or invalid.')
     }
 
     try {
-      getAddress(ddoCopy.nftAddress)
+      getAddress(nftAddress)
     } catch (err) {
       if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = []
       extraErrors.nftAddress.push('nftAddress is missing or invalid.')
     }
 
-    if (!(this.makeDid(ddoCopy.nftAddress, ddoCopy.chainId.toString(10)) === ddoCopy.id)) {
+    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
       if (!('id' in extraErrors)) extraErrors.id = []
       extraErrors.id.push('did is not valid for chain Id and nft address')
     }
@@ -120,7 +118,7 @@ export class V4DDO extends DDOManager {
 
 // V5 DDO implementation
 export class V5DDO extends DDOManager {
-  public constructor(ddoData: VerifiableCredential) {
+  public constructor(ddoData: Record<string, any>) {
     super(ddoData);
   }
 
@@ -133,24 +131,24 @@ export class V5DDO extends DDOManager {
     )
   }
 
-  async validate(): Promise<[boolean, Record<string, string[]>]> {
+  async validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {
     const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
     const extraErrors: Record<string, string[]> = {};
     ddoCopy['@type'] = 'VerifiableCredential'
     ddoCopy['@context'] = {
-      '@vocab': 'https://www.w3.org/2018/credentials/v1'
+      '@vocab': 'https://www.w3.org/2018/credentials/v2'
     }
     if (!ddoCopy.credentialSubject.chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
     try {
-      getAddress(ddoCopy.credentialSubject.nftAddress);
+      getAddress(nftAddress);
     } catch (err) {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (!(this.makeDid(ddoCopy.credentialSubject.nftAddress, ddoCopy.credentialSubject.chainId.toString(10)) === ddoCopy.credentialSubject.id)) {
+    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.credentialSubject.id)) {
       extraErrors.id = ['did is not valid for chainId and nft address'];
     }
 
@@ -168,7 +166,7 @@ export class V5DDO extends DDOManager {
     }
 
     for (const result of report.results) {
-      const key = result?.path?.value.replace('https://www.w3.org/2018/credentials/v1', '');
+      const key = result?.path?.value.replace('https://www.w3.org/2018/credentials/v2', '');
       if (key) {
         if (!(key in extraErrors)) extraErrors[key] = [];
         extraErrors[key].push(result.message[0].value);
@@ -182,10 +180,10 @@ export class V5DDO extends DDOManager {
   }
 }
 
-export async function validateDDO(ddoData: VerifiableCredential): Promise<[boolean, Record<string, string[]>]> {
+export async function validateDDO(ddoData: Record<string, any>, chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {
   try {
     const ddoInstance = DDOManager.getDDOClass(ddoData);
-    return await ddoInstance.validate();
+    return await ddoInstance.validate(chainId, nftAddress);
   } catch (error: any) {
     return [false, { general: [`Validation failed: ${error.message}`] }];
   }
