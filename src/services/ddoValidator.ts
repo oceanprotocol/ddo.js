@@ -1,10 +1,12 @@
+import formats from '@rdfjs/formats-common';
+// @ts-ignore
+import SHACLValidator from 'rdf-validate-shacl';
 import { createHash } from 'crypto'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { Readable } from 'stream'
-import rdf from 'rdf-ext';
-import SHACLValidator from 'rdf-validate-shacl'
-import formats from '@rdfjs/formats-common'
+import rdf from '@zazuko/env-node'
+import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
 import { VerifiableCredential } from './../@types/DOO5/VerifiableCredential';
 import { DDO } from '../@types/DDO4/DDO.js';
@@ -20,59 +22,19 @@ export abstract class DDOManager {
   }
 
   abstract validate(): Promise<[boolean, Record<string, string[]>]>;
-
-  loadSchema(schemaPath: string): rdf.DatasetCore {
-    try {
-      const shapes = rdf.dataset().import(rdf.fromFile(schemaPath));
-      return shapes;
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to load schema from path ${schemaPath}: ${err.message}`);
-    }
-  }
-
-  validateSchema(ddoData: any, schema: rdf.DatasetCore): boolean {
-    try {
-      const dataStream = Readable.from(JSON.stringify(ddoData));
-      const output = formats.parsers.import('application/ld+json', dataStream);
-      const data = rdf.dataset().import(output);
-
-      const validator = new SHACLValidator(schema, { factory: rdf });
-      const report = validator.validate(data);
-
-      if (report.conforms) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Validation failed: ${err.message}`);
-    }
-  }
+  abstract makeDid(nftAddress: string, chainId: string): string;
 
   getDDOData(): VerifiableCredential | DDO {
     return this.ddoData;
-  }
-
-  makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:op:' +
-      createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
-        .digest('hex')
-    )
   }
 
   getSchema(version: string = CURRENT_VERSION): string {
     if (!ALLOWED_VERSIONS.includes(version)) {
       return ''
     }
-    const path = `../../../../schemas/${version}.ttl`
-    // Use fileURLToPath to convert the URL to a file path
-    const currentModulePath = fileURLToPath(import.meta.url)
+    const path = `../../schemas/${version}.ttl`
+    const currentModulePath = fileURLToPath(import.meta.url);
 
-    // Use dirname to get the directory name
     const currentDirectory = dirname(currentModulePath)
     const schemaFilePath = resolve(currentDirectory, path)
     if (!schemaFilePath) {
@@ -100,18 +62,59 @@ export class V4DDO extends DDOManager {
     super(ddoData);
   }
 
+  makeDid(nftAddress: string, chainId: string): string {
+    return (
+      'did:op:' +
+      createHash('sha256')
+        .update(getAddress(nftAddress) + chainId)
+        .digest('hex')
+    )
+  }
+
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    try {
-      const schema = this.loadSchema('v4-shacl-schema');
-      const isValid = this.validateSchema(this.getDDOData(), schema);
-      if (!isValid) {
-        return [false, { general: ['Validation failed against SHACL schema for version 4'] }];
-      }
-      return [true, {}];
-    } catch (error) {
-      const err = error as Error;
-      return [false, { general: [`Error during validation: ${err.message}`] }];
+    const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()))
+    const extraErrors: Record<string, string[]> = {}
+    ddoCopy['@type'] = 'DDO';
+    ddoCopy['@context'] = {
+      '@vocab': 'http://schema.org/'
     }
+    if (!ddoCopy.chainId) {
+      if (!('chainId' in extraErrors)) extraErrors.chainId = []
+      extraErrors.chainId.push('chainId is missing or invalid.')
+    }
+
+    try {
+      getAddress(ddoCopy.nftAddress)
+    } catch (err) {
+      if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = []
+      extraErrors.nftAddress.push('nftAddress is missing or invalid.')
+    }
+
+    if (!(this.makeDid(ddoCopy.nftAddress, ddoCopy.chainId.toString(10)) === ddoCopy.id)) {
+      if (!('id' in extraErrors)) extraErrors.id = []
+      extraErrors.id.push('did is not valid for chain Id and nft address')
+    }
+    const schemaFilePath = this.getSchema(ddoCopy.version);
+    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath))
+    const dataStream = Readable.from(JSON.stringify(ddoCopy))
+    const output = formats.parsers.import('application/ld+json', dataStream)
+    const data = await rdf.dataset().import(output)
+    const validator = new SHACLValidator(shapes, { factory: rdf })
+    const report = await validator.validate(data) as any
+    if (report.conforms) {
+      return [true, {}]
+    }
+    for (const result of report.results) {
+      const key = result.path?.value.replace('http://schema.org/', '')
+      if (key) {
+        if (!(key in extraErrors)) extraErrors[key] = []
+        extraErrors[key].push(fromRdf(result.message[0]))
+      }
+    }
+    extraErrors.fullReport = await report.dataset.serialize({
+      format: 'application/ld+json'
+    })
+    return [false, extraErrors]
   }
 }
 
@@ -121,52 +124,64 @@ export class V5DDO extends DDOManager {
     super(ddoData);
   }
 
+  makeDid(nftAddress: string, chainId: string): string {
+    return (
+      'did:ope:' +
+      createHash('sha256')
+        .update(getAddress(nftAddress) + chainId)
+        .digest('hex')
+    )
+  }
+
   async validate(): Promise<[boolean, Record<string, string[]>]> {
     const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
-    const version = ddoCopy.version;
     const extraErrors: Record<string, string[]> = {};
-
-    if (!ddoCopy.chainId) {
+    ddoCopy['@type'] = 'VerifiableCredential'
+    ddoCopy['@context'] = {
+      '@vocab': 'https://www.w3.org/2018/credentials/v1'
+    }
+    if (!ddoCopy.credentialSubject.chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
     try {
-      getAddress(ddoCopy.nftAddress);
+      getAddress(ddoCopy.credentialSubject.nftAddress);
     } catch (err) {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (!(this.makeDid(ddoCopy.nftAddress, ddoCopy.chainId.toString(10)) === ddoCopy.id)) {
+    if (!(this.makeDid(ddoCopy.credentialSubject.nftAddress, ddoCopy.credentialSubject.chainId.toString(10)) === ddoCopy.credentialSubject.id)) {
       extraErrors.id = ['did is not valid for chainId and nft address'];
     }
 
-    const schemaFilePath = this.getSchema(version);
+    const schemaFilePath = this.getSchema(ddoCopy.version);
 
     const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
-    const report = await validator.validate(data);
+    const report = await validator.validate(data) as any;
 
     if (report.conforms) {
       return [true, {}];
     }
 
     for (const result of report.results) {
-      const key = result?.path?.value.replace('http://schema.org/', '');
+      const key = result?.path?.value.replace('https://www.w3.org/2018/credentials/v1', '');
       if (key) {
         if (!(key in extraErrors)) extraErrors[key] = [];
         extraErrors[key].push(result.message[0].value);
       }
     }
 
-    extraErrors.fullReport = [await report.dataset.toString()];
+    extraErrors.fullReport = await report.dataset.serialize({
+      format: 'application/ld+json'
+    })
     return [false, extraErrors];
   }
 }
 
-// Utility function for validation
 export async function validateDDO(ddoData: VerifiableCredential): Promise<[boolean, Record<string, string[]>]> {
   try {
     const ddoInstance = DDOManager.getDDOClass(ddoData);
