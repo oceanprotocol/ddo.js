@@ -136,7 +136,7 @@ export class V5DDO extends DDOManager {
     const extraErrors: Record<string, string[]> = {};
     ddoCopy['@type'] = 'VerifiableCredential'
     ddoCopy['@context'] = {
-      '@vocab': 'https://www.w3.org/2018/credentials/v2'
+      '@vocab': 'https://www.w3.org/ns/credentials/v2/'
     }
     if (!ddoCopy.credentialSubject.chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
@@ -150,6 +150,14 @@ export class V5DDO extends DDOManager {
 
     if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.credentialSubject.id)) {
       extraErrors.id = ['did is not valid for chainId and nft address'];
+    }
+
+    if (!ddoCopy.credentialSubject.metadata) {
+      extraErrors.metadata = ["metadata is missing or invalid."];
+    }
+
+    if (!ddoCopy.credentialSubject.services) {
+      extraErrors.services = ["services are missing or invalid."];
     }
 
     const schemaFilePath = this.getSchema(ddoCopy.version);
@@ -166,7 +174,7 @@ export class V5DDO extends DDOManager {
     }
 
     for (const result of report.results) {
-      const key = result?.path?.value.replace('https://www.w3.org/2018/credentials/v2', '');
+      const key = result?.path?.value.replace('https://www.w3.org/ns/credentials/v2/', '');
       if (key) {
         if (!(key in extraErrors)) extraErrors[key] = [];
         extraErrors[key].push(result.message[0].value);

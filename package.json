@@ -7,9 +7,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "clean-tests": "rm -rf ./dist/tests",
-    "build-tests": "tsc --sourceMap --sourceRoot ./src/test",
-    "test:unit": "yarn build-tests && mocha \"./dist/test/**/*.test.js\""
+    "clean-tests": "rm -rf ./dist/test",
+    "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
+    "test:unit": "yarn clean-tests && yarn build-tests && mocha \"./dist/test/**/*.test.js\""
   },
   "devDependencies": {
     "@types/chai": "^5.0.1",

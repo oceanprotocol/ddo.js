@@ -159,32 +159,25 @@ export const DDOExampleV5 = {
     },
     chainId: 137,
     nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
-    stats: {
-      allocated: 0,
-      orders: 0,
-      price: {
-        value: '0'
-      }
-    }
   },
   issuer: 'did:op:issuer-did',
   type: ['VerifiableCredential'],
-  additionalDdos: [{}]
+  additionalDdos: [{ type: "", data: "" }]
 }
 
 export const invalidDDOV4 = {
   '@context': ['https://w3id.org/did/v1'],
-  id: '',
+  id: 'did:op:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
   version: '4.1.0',
-  chainId: 8996,
-  nftAddress: '0x0'
+  chainId: 137,
+  nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656'
 }
 
 export const invalidDDOV5 = {
-  '@context': ['https://w3id.org/did/v1'],
+  '@context': ['https://www.w3.org/ns/credentials/v2'],
   version: '5.0.0',
   credentialSubject: {
-    id: 'did:op:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
+    id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
     services: [
       {
         id: 'ccb398c50d6abd5b456e8d7242bd856a1767a890b537c2f8c10ba8b8a10e6025',
@@ -222,5 +215,5 @@ export const invalidDDOV5 = {
   },
   issuer: 'did:op:issuer-did',
   type: ['VerifiableCredential'],
-  additionalDdos: [{}]
+  additionalDdos: [{ type: "", data: "" }]
 }

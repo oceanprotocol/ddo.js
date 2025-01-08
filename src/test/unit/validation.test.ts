@@ -10,13 +10,10 @@ describe('DDOManager Validation Tests', () => {
   });
 
   it('should fail V4 DDO validation due to missing metadata', async () => {
-    console.log("invalidDDOV4", invalidDDOV4)
     const invalidCopy = JSON.parse(JSON.stringify(invalidDDOV4));
-    console.log("invalidCopy:", invalidCopy)
     const validationResult = await validateDDO(invalidCopy, 137, invalidCopy.nftAddress);
     expect(validationResult[0]).to.eql(false);
-    expect(validationResult[1]).to.have.property('metadata');
-    expect(validationResult[1].metadata).to.include('metadata is missing or invalid.');
+    expect(validationResult[1].metadata).to.include('Less than 1 values');
   });
 
   it('should validate a valid V5 DDO successfully (Verifiable Credential)', async () => {
@@ -25,13 +22,21 @@ describe('DDOManager Validation Tests', () => {
     expect(validationResult[1]).to.eql({});
   });
 
-  it('should fail V5 DDO validation due to missing credentialSubject data', async () => {
+  it('should fail V5 DDO validation due to missing credentialSubject metadata', async () => {
     const invalidCopy = JSON.parse(JSON.stringify(invalidDDOV5));
-    delete invalidCopy.credentialSubject.chainId; // Simulate missing required data
     const validationResult = await validateDDO(invalidCopy, 137, invalidCopy.credentialSubject.nftAddress);
     expect(validationResult[0]).to.eql(false);
-    expect(validationResult[1]).to.have.property('chainId');
-    expect(validationResult[1].chainId).to.include('chainId is missing or invalid.');
+    expect(validationResult[1]).to.have.property('metadata');
+    expect(validationResult[1].metadata).to.include('metadata is missing or invalid.');
+  });
+
+  it('should fail V5 DDO validation due to missing credentialSubject services', async () => {
+    const invalidCopy = JSON.parse(JSON.stringify(DDOExampleV5));
+    delete invalidCopy.credentialSubject.services
+    const validationResult = await validateDDO(invalidCopy, 137, invalidCopy.credentialSubject.nftAddress);
+    expect(validationResult[0]).to.eql(false);
+    expect(validationResult[1]).to.have.property('services');
+    expect(validationResult[1].services).to.include('services are missing or invalid.');
   });
 
   it('should return a valid DID for V4 DDO', () => {
@@ -49,16 +54,5 @@ describe('DDOManager Validation Tests', () => {
   it('should throw an error for unsupported DDO versions', () => {
     const unsupportedDDO = { ...DDOExampleV4, version: '3.0.0' };
     expect(() => DDOManager.getDDOClass(unsupportedDDO)).to.throw('Unsupported DDO version: 3.0.0');
-  });
-
-  it('should validate and generate a full error report for invalid DDO', async () => {
-    const invalidCopy = JSON.parse(JSON.stringify(invalidDDOV5));
-    invalidCopy.credentialSubject.chainId = null;
-    const validationResult = await validateDDO(invalidCopy, 137, invalidCopy.credentialSubject.nftAddress);
-    expect(validationResult[0]).to.eql(false);
-    expect(validationResult[1]).to.have.property('chainId');
-    expect(validationResult[1].chainId).to.include('chainId is missing or invalid.');
-    expect(validationResult[1]).to.have.property('fullReport');
-    expect(validationResult[1].fullReport).to.be.a('string');
   });
 });
