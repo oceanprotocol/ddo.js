@@ -8,6 +8,10 @@ import { Readable } from 'stream'
 import rdf from '@zazuko/env-node'
 import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
+import { Metadata as MetadataV4 } from '../@types/DDO4/Metadata';
+import { Metadata as MetadataV5 } from '../@types/DOO5/Metadata';
+import { Service as ServiceV5 } from '../@types/DOO5/Service';
+import { Service as ServiceV4 } from '../@types/DOO5/Service';
 
 const CURRENT_VERSION = '5.0.0'
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0']
@@ -19,8 +23,10 @@ export abstract class DDOManager {
     this.ddoData = ddoData;
   }
 
-  abstract validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]>;
   abstract makeDid(nftAddress: string, chainId: string): string;
+
+  abstract getServices(): ServiceV4[] | ServiceV5;
+  abstract getMetadata(): MetadataV4 | MetadataV5;
 
   getDDOData(): Record<string, any> {
     return this.ddoData;
@@ -28,29 +34,22 @@ export abstract class DDOManager {
 
   getSchema(version: string = CURRENT_VERSION): string {
     if (!ALLOWED_VERSIONS.includes(version)) {
-      return ''
+      throw new Error(`Unsupported schema version: ${version}`);
     }
     const path = `../../schemas/${version}.ttl`
     const currentModulePath = fileURLToPath(import.meta.url);
-
     const currentDirectory = dirname(currentModulePath)
-    const schemaFilePath = resolve(currentDirectory, path)
-    if (!schemaFilePath) {
-      return ''
-    }
-    return schemaFilePath
+    return resolve(currentDirectory, path);
   }
 
   static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
     const { version } = ddoData;
-
     if (version.startsWith('4')) {
       return new V4DDO(ddoData);
     } else if (version.startsWith('5')) {
       return new V5DDO(ddoData);
-    } else {
-      throw new Error(`Unsupported DDO version: ${version}`);
     }
+    throw new Error(`Unsupported DDO version: ${version}`);
   }
 }
 
@@ -58,6 +57,14 @@ export abstract class DDOManager {
 export class V4DDO extends DDOManager {
   public constructor(ddoData: Record<string, any>) {
     super(ddoData);
+  }
+
+  getServices(): ServiceV5[] {
+    return this.getDDOData().services || null;
+  }
+
+  getMetadata(): MetadataV4 {
+    return this.getDDOData().metadata || null;
   }
 
   makeDid(nftAddress: string, chainId: string): string {
@@ -129,6 +136,14 @@ export class V5DDO extends DDOManager {
         .update(getAddress(nftAddress) + chainId)
         .digest('hex')
     )
+  }
+
+  getServices(): ServiceV5[] {
+    return this.getDDOData().credentialSubject?.services || null;
+  }
+
+  getMetadata(): MetadataV5 {
+    return this.getDDOData().credentialSubject?.metadata || null;
   }
 
   async validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DDOManager, V4DDO, V5DDO, validateDDO } from '../../services/ddoValidator.js';
+import { DDOManager, V4DDO, V5DDO, validateDDO } from '../../services/ddoManager.js';
 import { DDOExampleV4, DDOExampleV5, invalidDDOV4, invalidDDOV5 } from '../data/ddo.js';
 
 describe('DDOManager Validation Tests', () => {

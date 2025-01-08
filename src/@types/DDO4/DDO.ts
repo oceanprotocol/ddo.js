@@ -1,4 +1,5 @@
 import { Credentials } from "./Credentials"
+import { Event } from "./Event"
 import { Metadata } from "./Metadata"
 import { Service } from "./Service"
 
