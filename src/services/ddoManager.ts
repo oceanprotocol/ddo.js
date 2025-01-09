@@ -12,6 +12,8 @@ import { Metadata as MetadataV4 } from '../@types/DDO4/Metadata';
 import { Metadata as MetadataV5 } from '../@types/DDO5/Metadata';
 import { Service as ServiceV5 } from '../@types/DDO5/Service';
 import { Service as ServiceV4 } from '../@types/DDO5/Service';
+import { Asset as AssetV5 } from '../@types/DDO5/Asset';
+import { Asset as AssetV4 } from '../@types/DDO4/Asset';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -27,6 +29,71 @@ export abstract class DDOManager {
 
   abstract getServices(): ServiceV4[] | ServiceV5;
   abstract getMetadata(): MetadataV4 | MetadataV5;
+
+  async getAsset(
+    did: string,
+    nodeUrl: string,
+    txid?: string,
+    signal?: AbortSignal): Promise<AssetV5 | AssetV4 | null> {
+    let tries = 0
+    do {
+      try {
+        const path = nodeUrl + '/api/aquarius/assets/ddo/' + did
+        const response = await fetch(path, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          signal
+        })
+        if (response.ok) {
+          const ddo = await response.json()
+          if (txid) {
+            if (ddo.event && ddo.event.txid === txid) {
+              if (ddo.version.startsWith('5')) {
+                return ddo;
+              }
+              return ddo as AssetV4;
+            }
+          } else {
+            if (ddo.version.startsWith('5')) {
+              return ddo as AssetV5;
+            }
+            return ddo as AssetV4;
+          }
+        }
+      } catch (e) {
+        throw new Error('getAsset failed: ' + e)
+      }
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1500)
+      })
+      tries++
+    } while (tries < 100)
+    return null
+  }
+
+  public async getAssetMetadata(did: string, nodeUrl: string, signal?: AbortSignal): Promise<MetadataV4 | MetadataV5> {
+    const path = nodeUrl + '/api/aquarius/assets/metadata/' + did
+
+    try {
+      const response = await fetch(path, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal
+      })
+
+      if (response.ok) {
+        return response.json()
+      } else {
+        throw new Error(
+          'getAssetMetadata failed: ' + response.status + response.statusText
+        )
+      }
+    } catch (error) {
+      throw new Error('Error getting metadata: ' + error)
+    }
+  }
 
   getDDOData(): Record<string, any> {
     return this.ddoData;
