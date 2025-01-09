@@ -76,8 +76,9 @@ export class V4DDO extends DDOManager {
     )
   }
 
-  async validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {
+  async validate(): Promise<[boolean, Record<string, string[]>]> {
     const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()))
+    const { chainId, nftAddress } = ddoCopy
     const extraErrors: Record<string, string[]> = {}
     ddoCopy['@type'] = 'DDO';
     ddoCopy['@context'] = {
@@ -146,8 +147,9 @@ export class V5DDO extends DDOManager {
     return this.getDDOData().credentialSubject?.metadata || null;
   }
 
-  async validate(chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {
+  async validate(): Promise<[boolean, Record<string, string[]>]> {
     const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
+    const { chainId, nftAddress } = ddoCopy.credentialSubject
     const extraErrors: Record<string, string[]> = {};
     ddoCopy['@type'] = 'VerifiableCredential'
     ddoCopy['@context'] = {
@@ -203,10 +205,10 @@ export class V5DDO extends DDOManager {
   }
 }
 
-export async function validateDDO(ddoData: Record<string, any>, chainId: number, nftAddress: string): Promise<[boolean, Record<string, string[]>]> {
+export async function validateDDO(ddoData: Record<string, any>): Promise<[boolean, Record<string, string[]>]> {
   try {
     const ddoInstance = DDOManager.getDDOClass(ddoData);
-    return await ddoInstance.validate(chainId, nftAddress);
+    return await ddoInstance.validate();
   } catch (error: any) {
     return [false, { general: [`Validation failed: ${error.message}`] }];
   }
