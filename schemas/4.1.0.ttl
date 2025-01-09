@@ -393,3 +393,4 @@ schema:CredentialsItemShape
         sh:pattern "^(.*)$" ;
         sh:minCount 1;
     ] ; .
+    
