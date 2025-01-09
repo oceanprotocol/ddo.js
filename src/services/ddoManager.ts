@@ -9,9 +9,9 @@ import rdf from '@zazuko/env-node'
 import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
 import { Metadata as MetadataV4 } from '../@types/DDO4/Metadata';
-import { Metadata as MetadataV5 } from '../@types/DOO5/Metadata';
-import { Service as ServiceV5 } from '../@types/DOO5/Service';
-import { Service as ServiceV4 } from '../@types/DOO5/Service';
+import { Metadata as MetadataV5 } from '../@types/DDO5/Metadata';
+import { Service as ServiceV5 } from '../@types/DDO5/Service';
+import { Service as ServiceV4 } from '../@types/DDO5/Service';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
