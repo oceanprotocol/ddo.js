@@ -20,3 +20,5 @@ export * from './DDO5/Remote'
 export { Service as ServiceV5 } from './DDO5/Service'
 export * from './DDO5/State'
 export * from './DDO5/VerifiableCredential'
+
+export * from './IssuerSignature'

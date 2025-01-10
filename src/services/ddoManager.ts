@@ -27,6 +27,7 @@ export abstract class DDOManager {
 
   abstract makeDid(nftAddress: string, chainId: string): string;
 
+  abstract getDid(): string;
   abstract getServices(): ServiceV4[] | ServiceV5;
   abstract getMetadata(): MetadataV4 | MetadataV5;
 
@@ -126,6 +127,10 @@ export class V4DDO extends DDOManager {
     super(ddoData);
   }
 
+  getDid(): string {
+    return this.getDDOData().id || null;
+  }
+
   getServices(): ServiceV5[] {
     return this.getDDOData().services || null;
   }
@@ -204,6 +209,10 @@ export class V5DDO extends DDOManager {
         .update(getAddress(nftAddress) + chainId)
         .digest('hex')
     )
+  }
+
+  getDid(): string {
+    return this.getDDOData().credentialSubject?.id || null;
   }
 
   getServices(): ServiceV5[] {
