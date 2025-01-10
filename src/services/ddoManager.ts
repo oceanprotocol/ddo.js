@@ -14,6 +14,7 @@ import { Service as ServiceV5 } from '../@types/DDO5/Service';
 import { Service as ServiceV4 } from '../@types/DDO5/Service';
 import { Asset as AssetV5 } from '../@types/DDO5/Asset';
 import { Asset as AssetV4 } from '../@types/DDO4/Asset';
+import { Stats } from '../@types/AssetTypes';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -31,7 +32,7 @@ export abstract class DDOManager {
   abstract getServices(): ServiceV4[] | ServiceV5;
   abstract getMetadata(): MetadataV4 | MetadataV5;
 
-  async getAsset(
+  public async getAsset(
     did: string,
     nodeUrl: string,
     txid?: string,
@@ -96,11 +97,11 @@ export abstract class DDOManager {
     }
   }
 
-  getDDOData(): Record<string, any> {
+  public getDDOData(): Record<string, any> {
     return this.ddoData;
   }
 
-  getSchema(version: string = CURRENT_VERSION): string {
+  public getSchema(version: string = CURRENT_VERSION): string {
     if (!ALLOWED_VERSIONS.includes(version)) {
       throw new Error(`Unsupported schema version: ${version}`);
     }
@@ -110,7 +111,7 @@ export abstract class DDOManager {
     return resolve(currentDirectory, path);
   }
 
-  static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
+  public static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
     const { version } = ddoData;
     if (version.startsWith('4')) {
       return new V4DDO(ddoData);
