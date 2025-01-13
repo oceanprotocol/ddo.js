@@ -3,7 +3,7 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext", "dom"],
     "declaration": true,
     "rootDir": "./src",
     "module": "ESNext",
