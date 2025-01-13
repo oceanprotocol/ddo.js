@@ -128,9 +128,17 @@ export interface Stats {
 }
 
 export interface AssetLastEvent {
-  tx: string
+  txid: string
   block: number
   from: string
   contract: string
   datetime: string
+}
+
+export interface AssetFields {
+  datatokens?: AssetDatatoken[];
+  event?: AssetLastEvent;
+  nft?: AssetNft;
+  purgatory?: Purgatory;
+  stats?: Stats;
 }

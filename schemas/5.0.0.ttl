@@ -182,7 +182,7 @@ schema:EventShape
     ] ;
     sh:property [
         sh:path schema:datetime ;
-        sh:datatype xsd:dateTime ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
     ] .
 

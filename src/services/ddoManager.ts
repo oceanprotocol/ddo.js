@@ -14,7 +14,7 @@ import { Service as ServiceV5 } from '../@types/DDO5/Service';
 import { Service as ServiceV4 } from '../@types/DDO5/Service';
 import { Asset as AssetV5 } from '../@types/DDO5/Asset';
 import { Asset as AssetV4 } from '../@types/DDO4/Asset';
-import { Stats } from '../@types/AssetTypes';
+import { AssetFields } from '../@types/AssetTypes';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -31,6 +31,7 @@ export abstract class DDOManager {
   abstract getDid(): string;
   abstract getServices(): ServiceV4[] | ServiceV5;
   abstract getMetadata(): MetadataV4 | MetadataV5;
+  abstract getAssetFields(): AssetFields;
 
   public async getAsset(
     did: string,
@@ -140,6 +141,16 @@ export class V4DDO extends DDOManager {
     return this.getDDOData().metadata || null;
   }
 
+  getAssetFields(): AssetFields {
+    return {
+      stats: this.getDDOData().stats,
+      purgatory: this.getDDOData().purgatory,
+      event: this.getDDOData().event,
+      datatokens: this.getDDOData().datatokens,
+      nft: this.getDDOData().nft,
+    };
+  }
+
   makeDid(nftAddress: string, chainId: string): string {
     return (
       'did:op:' +
@@ -222,6 +233,16 @@ export class V5DDO extends DDOManager {
 
   getMetadata(): MetadataV5 {
     return this.getDDOData().credentialSubject?.metadata || null;
+  }
+
+  getAssetFields(): AssetFields {
+    return {
+      stats: this.getDDOData().credentialSubject?.stats,
+      purgatory: this.getDDOData().credentialSubject?.purgatory,
+      event: this.getDDOData().credentialSubject?.event,
+      datatokens: this.getDDOData().credentialSubject?.datatokens,
+      nft: this.getDDOData().credentialSubject?.nft,
+    };
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {

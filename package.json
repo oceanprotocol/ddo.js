@@ -1,14 +1,20 @@
 {
   "name": "ddo.js",
   "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "repository": "https://github.com/oceanprotocol/ddo.js.git",
   "author": "",
   "license": "MIT",
+  "main": "./dist/lib.js",
+  "umd:main": "dist/lib.umd.js",
+  "module": "./dist/lib.module.js",
+  "exports": {
+    "require": "./dist/lib.js",
+    "default": "./dist/lib.modern.js"
+  },
   "type": "module",
+  "types": "./dist/types/index.d.ts",
   "scripts": {
-    "build": "tsc --outDir dist && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
+    "build": "tsc --outDir dist && microbundle build --output dist/lib.js --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
     "clean-tests": "rm -rf ./dist/test",
     "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
     "test:unit": "yarn clean-tests && yarn build-tests && mocha \"./dist/test/**/*.test.js\""

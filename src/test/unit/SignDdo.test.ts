@@ -2,7 +2,7 @@ import { assert } from 'chai'
 import { ethers } from 'ethers'
 import { base64url } from 'jose'
 import { signCredential, verifyCredential } from '../../services/signDdo.js'
-import { IssuerKeyJWK, IssuerPublicKeyJWK } from '../../@types/IssuerSignature'
+import { IssuerKeyJWK, IssuerPublicKeyJWK } from '../../@types/IssuerSignature.js'
 
 
 const mockVerifiableCredential = {
