@@ -84,7 +84,8 @@ export const DDOExampleV4 = {
       name: 'Boorish Fish Token',
       symbol: 'BOOFIS-23'
     }
-  }
+  },
+  credentials: null
 }
 
 export const DDOExampleV5 = {

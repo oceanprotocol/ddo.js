@@ -10,11 +10,10 @@ import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
 import { Metadata as MetadataV4 } from '../@types/DDO4/Metadata';
 import { Metadata as MetadataV5 } from '../@types/DDO5/Metadata';
-import { Service as ServiceV5 } from '../@types/DDO5/Service';
-import { Service as ServiceV4 } from '../@types/DDO5/Service';
 import { Asset as AssetV5 } from '../@types/DDO5/Asset';
 import { Asset as AssetV4 } from '../@types/DDO4/Asset';
 import { AssetFields } from '../@types/AssetTypes';
+import { CredentialSubject, DDOFields } from '../@types/index';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -22,17 +21,64 @@ const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
 export abstract class DDOManager {
   private ddoData: Record<string, any>;
 
+  /**
+   * Constructor for DDOManager.
+   * @param ddoData - The data object representing the DDO.
+   */
   public constructor(ddoData: Record<string, any>) {
     this.ddoData = ddoData;
   }
 
+  /**
+   * Abstract method to generate a DID (Decentralized Identifier).
+   * @param nftAddress - The NFT address.
+   * @param chainId - The chain ID.
+   * @returns A string representing the DID.
+   */
   abstract makeDid(nftAddress: string, chainId: string): string;
 
+  /**
+   * Abstract method to retrieve the DID.
+   * @returns The DID of ddo.
+   */
   abstract getDid(): string;
-  abstract getServices(): ServiceV4[] | ServiceV5;
-  abstract getMetadata(): MetadataV4 | MetadataV5;
+
+  /**
+   * Abstract method to retrieve DDO fields.
+   * `DDOFields` or `CredentialSubject` contains the following structure:
+   * - **id**: The Decentralized Identifier (DID) of the asset.
+   * - **metadata**: The metadata describing the asset.
+   * - **services**: An array of services associated with the asset.
+   * - **credentials**: An array of verifiable credentials.
+   * - **chainId**: The blockchain chain ID where the asset is registered.
+   * - **nftAddress**: The address of the NFT representing the asset.
+   * - **event** (optional): The last event related to the asset.
+   * 
+   * @returns The DDO fields as `DDOFields` or `CredentialSubject`.
+   */
+  abstract getDDOFields(): DDOFields | CredentialSubject;
+
+  /**
+   * Abstract method to retrieve asset fields.
+   * `AssetFields` contains the following structure:
+   * - **datatokens** (optional): The datatokens associated with the asset.
+   * - **event** (optional): The last event related to the asset.
+   * - **nft** (optional): Information about the NFT representing the asset.
+   * - **purgatory** (optional): Purgatory status of the asset, if applicable.
+   * - **stats** (optional): Statistical information about the asset (e.g., usage, views).
+   * 
+   * @returns The asset fields as `AssetFields`.
+   */
   abstract getAssetFields(): AssetFields;
 
+  /**
+   * Retrieves the asset data from the Aquarius endpoint.
+   * @param did - The DID of the asset.
+   * @param nodeUrl - The Aquarius node URL.
+   * @param txid - (Optional) Transaction ID for filtering.
+   * @param signal - (Optional) Abort signal to cancel the request.
+   * @returns The asset as `AssetV5` or `AssetV4` or `null` if not found.
+   */
   public async getAsset(
     did: string,
     nodeUrl: string,
@@ -74,6 +120,14 @@ export abstract class DDOManager {
     return null
   }
 
+  /**
+   * Retrieves metadata of an asset.
+   * @param did - The DID of the asset.
+   * @param nodeUrl - The Aquarius node URL.
+   * @param signal - (Optional) Abort signal to cancel the request.
+   * @returns The metadata.
+   * @throws An error if metadata retrieval fails.
+   */
   public async getAssetMetadata(did: string, nodeUrl: string, signal?: AbortSignal): Promise<MetadataV4 | MetadataV5> {
     const path = nodeUrl + '/api/aquarius/assets/metadata/' + did
 
@@ -98,10 +152,20 @@ export abstract class DDOManager {
     }
   }
 
+  /**
+   * Retrieves the DDO data.
+   * @returns The DDO data as a record.
+   */
   public getDDOData(): Record<string, any> {
     return this.ddoData;
   }
 
+  /**
+   * Resolves the schema file path for a given version.
+   * @param version - The schema version (default: CURRENT_VERSION).
+   * @returns The resolved schema file path.
+   * @throws An error if the version is not supported.
+   */
   public getSchema(version: string = CURRENT_VERSION): string {
     if (!ALLOWED_VERSIONS.includes(version)) {
       throw new Error(`Unsupported schema version: ${version}`);
@@ -112,6 +176,12 @@ export abstract class DDOManager {
     return resolve(currentDirectory, path);
   }
 
+  /**
+   * Factory method to get a DDO class instance based on version.
+   * @param ddoData - The DDO data object.
+   * @returns An instance of `V4DDO` or `V5DDO`.
+   * @throws An error if the version is not supported.
+   */
   public static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
     const { version } = ddoData;
     if (version.startsWith('4')) {
@@ -133,12 +203,16 @@ export class V4DDO extends DDOManager {
     return this.getDDOData().id || null;
   }
 
-  getServices(): ServiceV5[] {
-    return this.getDDOData().services || null;
-  }
-
-  getMetadata(): MetadataV4 {
-    return this.getDDOData().metadata || null;
+  getDDOFields(): DDOFields {
+    const data = this.getDDOData();
+    return {
+      id: data.id || null,
+      metadata: data.metadata || null,
+      services: data.services || null,
+      chainId: data.chainId || null,
+      credentials: data.credentials || null,
+      nftAddress: data.nftAddress || null,
+    };
   }
 
   getAssetFields(): AssetFields {
@@ -227,12 +301,16 @@ export class V5DDO extends DDOManager {
     return this.getDDOData().credentialSubject?.id || null;
   }
 
-  getServices(): ServiceV5[] {
-    return this.getDDOData().credentialSubject?.services || null;
-  }
-
-  getMetadata(): MetadataV5 {
-    return this.getDDOData().credentialSubject?.metadata || null;
+  getDDOFields(): CredentialSubject {
+    const data = this.getDDOData();
+    return {
+      id: data.credentialSubject?.id || null,
+      metadata: data.credentialSubject?.metadata || null,
+      services: data.credentialSubject?.services || null,
+      chainId: data.credentialSubject?.chainId || null,
+      credentials: data.credentialSubject?.credentials || null,
+      nftAddress: data.credentialSubject?.nftAddress || null,
+    };
   }
 
   getAssetFields(): AssetFields {

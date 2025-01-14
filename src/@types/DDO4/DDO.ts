@@ -65,3 +65,12 @@ export interface DDO {
    */
   event?: Event
 }
+
+export interface DDOFields {
+  id: string
+  nftAddress: string
+  chainId: number
+  metadata: Metadata
+  services: Service[]
+  credentials?: Credentials
+}
