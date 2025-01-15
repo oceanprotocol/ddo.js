@@ -91,6 +91,7 @@ export const DDOExampleV4 = {
 export const DDOExampleV5 = {
   '@context': ['https://www.w3.org/ns/credentials/v2'],
   version: '5.0.0',
+  id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
   credentialSubject: {
     id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
     metadata: {
@@ -214,6 +215,7 @@ export const invalidDDOV4 = {
 export const invalidDDOV5 = {
   '@context': ['https://www.w3.org/ns/credentials/v2'],
   version: '5.0.0',
+  id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
   credentialSubject: {
     id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
     services: [

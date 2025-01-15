@@ -4,13 +4,13 @@
   "repository": "https://github.com/oceanprotocol/ddo.js.git",
   "author": "",
   "license": "MIT",
-  "main": "./dist/lib.cjs",
+  "main": "./dist/index.js",
   "umd:main": "dist/lib.umd.js",
   "module": "./dist/lib.module.js",
   "source": "./src/index.ts",
   "type": "module",
   "exports": {
-    "require": "./dist/lib.cjs",
+    "require": "./dist/index.js",
     "default": "./dist/lib.modern.js"
   },
   "types": "./dist/types/index.d.ts",

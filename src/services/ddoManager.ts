@@ -8,10 +8,6 @@ import { Readable } from 'stream'
 import rdf from '@zazuko/env-node'
 import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
-import { Metadata as MetadataV4 } from '../@types/DDO4/Metadata';
-import { Metadata as MetadataV5 } from '../@types/DDO5/Metadata';
-import { Asset as AssetV5 } from '../@types/DDO5/Asset';
-import { Asset as AssetV4 } from '../@types/DDO4/Asset';
 import { AssetFields } from '../@types/AssetTypes';
 import { CredentialSubject, DDOFields } from '../@types/index';
 
@@ -36,12 +32,6 @@ export abstract class DDOManager {
    * @returns A string representing the DID.
    */
   abstract makeDid(nftAddress: string, chainId: string): string;
-
-  /**
-   * Abstract method to retrieve the DID.
-   * @returns The DID of ddo.
-   */
-  abstract getDid(): string;
 
   /**
    * Abstract method to retrieve DDO fields.
@@ -72,92 +62,19 @@ export abstract class DDOManager {
   abstract getAssetFields(): AssetFields;
 
   /**
-   * Retrieves the asset data from the Aquarius endpoint.
-   * @param did - The DID of the asset.
-   * @param nodeUrl - The Aquarius node URL.
-   * @param txid - (Optional) Transaction ID for filtering.
-   * @param signal - (Optional) Abort signal to cancel the request.
-   * @returns The asset as `AssetV5` or `AssetV4` or `null` if not found.
-   */
-  public async getAsset(
-    did: string,
-    nodeUrl: string,
-    txid?: string,
-    signal?: AbortSignal): Promise<AssetV5 | AssetV4 | null> {
-    let tries = 0
-    do {
-      try {
-        const path = nodeUrl + '/api/aquarius/assets/ddo/' + did
-        const response = await fetch(path, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          signal
-        })
-        if (response.ok) {
-          const ddo = await response.json()
-          if (txid) {
-            if (ddo.event && ddo.event.txid === txid) {
-              if (ddo.version.startsWith('5')) {
-                return ddo;
-              }
-              return ddo as AssetV4;
-            }
-          } else {
-            if (ddo.version.startsWith('5')) {
-              return ddo as AssetV5;
-            }
-            return ddo as AssetV4;
-          }
-        }
-      } catch (e) {
-        throw new Error('getAsset failed: ' + e)
-      }
-      await new Promise((resolve) => {
-        setTimeout(resolve, 1500)
-      })
-      tries++
-    } while (tries < 100)
-    return null
-  }
-
-  /**
-   * Retrieves metadata of an asset.
-   * @param did - The DID of the asset.
-   * @param nodeUrl - The Aquarius node URL.
-   * @param signal - (Optional) Abort signal to cancel the request.
-   * @returns The metadata.
-   * @throws An error if metadata retrieval fails.
-   */
-  public async getAssetMetadata(did: string, nodeUrl: string, signal?: AbortSignal): Promise<MetadataV4 | MetadataV5> {
-    const path = nodeUrl + '/api/aquarius/assets/metadata/' + did
-
-    try {
-      const response = await fetch(path, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        signal
-      })
-
-      if (response.ok) {
-        return response.json()
-      } else {
-        throw new Error(
-          'getAssetMetadata failed: ' + response.status + response.statusText
-        )
-      }
-    } catch (error) {
-      throw new Error('Error getting metadata: ' + error)
-    }
-  }
-
-  /**
    * Retrieves the DDO data.
    * @returns The DDO data as a record.
    */
   public getDDOData(): Record<string, any> {
     return this.ddoData;
+  }
+
+  /**
+   * Method to retrieve the DID.
+   * @returns The DID of ddo.
+   */
+  public getDid(): string {
+    return this.getDDOData().id || null;
   }
 
   /**
@@ -197,10 +114,6 @@ export abstract class DDOManager {
 export class V4DDO extends DDOManager {
   public constructor(ddoData: Record<string, any>) {
     super(ddoData);
-  }
-
-  getDid(): string {
-    return this.getDDOData().id || null;
   }
 
   getDDOFields(): DDOFields {
@@ -297,14 +210,10 @@ export class V5DDO extends DDOManager {
     )
   }
 
-  getDid(): string {
-    return this.getDDOData().credentialSubject?.id || null;
-  }
-
   getDDOFields(): CredentialSubject {
     const data = this.getDDOData();
     return {
-      id: data.credentialSubject?.id || null,
+      id: data?.id || null,
       metadata: data.credentialSubject?.metadata || null,
       services: data.credentialSubject?.services || null,
       chainId: data.credentialSubject?.chainId || null,
@@ -341,7 +250,7 @@ export class V5DDO extends DDOManager {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.credentialSubject.id)) {
+    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
       extraErrors.id = ['did is not valid for chainId and nft address'];
     }
 

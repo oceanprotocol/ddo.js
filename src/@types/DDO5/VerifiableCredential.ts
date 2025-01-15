@@ -13,7 +13,7 @@ export interface EnvelopedVerifiableCredential {
 
 export interface VerifiableCredential {
   "@context": string[];
-  id?: string;
+  id: string;
   type: string[];
   credentialSubject: CredentialSubject;
   issuer: string;

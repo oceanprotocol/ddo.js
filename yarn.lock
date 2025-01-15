@@ -2049,7 +2049,7 @@
 
 "@zazuko/env-node@^2.1.4":
   version "2.1.4"
-  resolved "https://registry.npmjs.org/@zazuko/env-node/-/env-node-2.1.4.tgz"
+  resolved "https://registry.yarnpkg.com/@zazuko/env-node/-/env-node-2.1.4.tgz#61bef8f05d3f4e8fe17b71c5a9e2b743d9e6eb8a"
   integrity sha512-D3pw3T3SpC6lI3D5Akio/63lWaI9VKWazVGcjWP0gC598JQ60V7T+4QSCUcxT0ZGTDOkNdT3loYR9P+JK96KeQ==
   dependencies:
     "@rdfjs/fetch-lite" "^3.2.2"
