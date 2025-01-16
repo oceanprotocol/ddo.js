@@ -1,2 +1,2 @@
-export * from './ddoManager';
-export * from './signDdo';
+export * from './ddoManager.js';
+export * from './signDdo.js';

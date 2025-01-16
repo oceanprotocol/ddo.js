@@ -269,7 +269,7 @@ export class V5DDO extends DDOManager {
     const output = formats.parsers.import('application/ld+json', dataStream);
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
-    const report = await validator.validate(data) as any;
+    const report = await validator.validate(data);
 
     if (report.conforms) {
       return [true, {}];
@@ -294,7 +294,7 @@ export async function validateDDO(ddoData: Record<string, unknown>): Promise<[bo
   try {
     const ddoInstance = DDOManager.getDDOClass(ddoData);
     return await ddoInstance.validate();
-  } catch (error: any) {
-    return [false, { general: [`Validation failed: ${error.message}`] }];
+  } catch (error) {
+    return [false, { general: [`Validation failed: ${error}`] }];
   }
 }

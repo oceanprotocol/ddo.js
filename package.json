@@ -5,17 +5,11 @@
   "author": "",
   "license": "MIT",
   "main": "./dist/index.js",
-  "umd:main": "dist/index.umd.js",
-  "module": "./dist/index.module.js",
   "source": "./src/index.ts",
   "type": "module",
-  "exports": {
-    "require": "./dist/index.js",
-    "default": "./dist/index.modern.js"
-  },
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --outDir dist && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
+    "build": "tsc",
     "clean-tests": "rm -rf ./dist/test",
     "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
     "test:unit": "yarn clean-tests && yarn build-tests && mocha \"./dist/test/**/*.test.js\""

@@ -21,5 +21,5 @@ export { Service as ServiceV5 } from './DDO5/Service'
 export * from './DDO5/State'
 export * from './DDO5/VerifiableCredential'
 
-export * from './AssetTypes'
-export * from './IssuerSignature'
+export * from './AssetTypes.js'
+export * from './IssuerSignature.js'
