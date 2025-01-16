@@ -5,13 +5,13 @@
   "author": "",
   "license": "MIT",
   "main": "./dist/index.js",
-  "umd:main": "dist/lib.umd.js",
-  "module": "./dist/lib.module.js",
+  "umd:main": "dist/index.umd.js",
+  "module": "./dist/index.module.js",
   "source": "./src/index.ts",
   "type": "module",
   "exports": {
     "require": "./dist/index.js",
-    "default": "./dist/lib.modern.js"
+    "default": "./dist/index.modern.js"
   },
   "types": "./dist/types/index.d.ts",
   "scripts": {
@@ -50,9 +50,10 @@
     "@zazuko/env-node": "^2.1.4",
     "axios": "^1.7.9",
     "chai": "^5.1.2",
+    "crypto": "^1.0.1",
     "ethers": "^6.13.4",
     "jose": "^5.9.6",
     "lodash": "^4.17.21",
-    "rdf-validate-shacl": "^0.5.5"
+    "rdf-validate-shacl": "^0.5.6"
   }
 }
