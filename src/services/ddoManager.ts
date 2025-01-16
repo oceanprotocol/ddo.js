@@ -100,10 +100,10 @@ export abstract class DDOManager {
    * @throws An error if the version is not supported.
    */
   public static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
-    const { version } = ddoData;
-    if (version.startsWith('4')) {
+    const { version, id } = ddoData;
+    if (version.startsWith('4') && id.startsWith('did:op')) {
       return new V4DDO(ddoData);
-    } else if (version.startsWith('5')) {
+    } else if (version.startsWith('5') && id.startsWith('did:op')) {
       return new V5DDO(ddoData);
     }
     throw new Error(`Unsupported DDO version: ${version}`);
