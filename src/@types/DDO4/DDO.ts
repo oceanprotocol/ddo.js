@@ -1,7 +1,7 @@
-import { Credentials } from "./Credentials"
-import { Event } from "./Event"
-import { Metadata } from "./Metadata"
-import { Service } from "./Service"
+import { Credentials } from './Credentials';
+import { Event } from './Event';
+import { Metadata } from './Metadata';
+import { Service } from './Service';
 
 /**
  * DID Descriptor Object.
@@ -12,65 +12,65 @@ export interface DDO {
    * Contexts used for validation.
    * @type {string[]}
    */
-  '@context': string[]
+  '@context': string[];
 
   /**
    * DID, descentralized ID.
    * Computed as sha256(address of NFT contract + chainId)
    * @type {string}
    */
-  id: string
+  id: string;
 
   /**
    * Version information in SemVer notation
    * referring to the DDO spec version
    * @type {string}
    */
-  version: string
+  version: string;
 
   /**
    * NFT contract address
    * @type {string}
    */
-  nftAddress: string
+  nftAddress: string;
 
   /**
    * ChainId of the network the DDO was published to.
    * @type {number}
    */
-  chainId: number
+  chainId: number;
 
   /**
    * Stores an object describing the asset.
    * @type {Metadata}
    */
-  metadata: Metadata
+  metadata: Metadata;
 
   /**
    * Stores an array of services defining access to the asset.
    * @type {Service[]}
    */
-  services: Service[]
+  services: Service[];
 
   /**
    * Describes the credentials needed to access a dataset
    * in addition to the services definition.
    * @type {Credentials}
    */
-  credentials?: Credentials
+  credentials?: Credentials;
 
   /**
    * Describes the event of last metadata event
    * @type {Event}
    */
-  event?: Event
+  event?: Event;
 }
 
 export interface DDOFields {
-  id: string
-  nftAddress: string
-  chainId: number
-  metadata: Metadata
-  services: Service[]
-  credentials?: Credentials
+  id: string;
+  nftAddress: string;
+  chainId: number;
+  metadata: Metadata;
+  services: Service[];
+  credentials?: Credentials;
 }

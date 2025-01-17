@@ -1,6 +1,12 @@
-import { AssetDatatoken, AssetLastEvent, AssetNft, Purgatory, Stats } from "../AssetTypes"
-import { CredentialSubject } from "./CredentialSubject";
-import { VerifiableCredential } from "./VerifiableCredential"
+import {
+  AssetDatatoken,
+  AssetLastEvent,
+  AssetNft,
+  Purgatory,
+  Stats
+} from '../AssetTypes';
+import { CredentialSubject } from './CredentialSubject';
+import { VerifiableCredential } from './VerifiableCredential';
 
 export interface AssetCredentialSubject extends CredentialSubject {
   /**
@@ -34,7 +40,6 @@ export interface AssetCredentialSubject extends CredentialSubject {
    * @type {Purgatory}
    */
   purgatory: Purgatory;
-
 }
 
 export interface Asset extends VerifiableCredential {

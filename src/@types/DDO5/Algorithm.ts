@@ -12,15 +12,15 @@ export interface ConsumerParameter {
   required: boolean;
   description: string;
   default: string | number | boolean;
-  options: Option[]
+  options: Option[];
 }
 
 export interface Option {
-  [key: string]: string | number | boolean | OptionDetail[]
+  [key: string]: string | number | boolean | OptionDetail[];
 }
 
 export interface OptionDetail {
-  [key: string]: string
+  [key: string]: string;
 }
 
 export interface Container {

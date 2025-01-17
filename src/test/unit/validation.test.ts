@@ -1,6 +1,16 @@
 import { expect } from 'chai';
-import { DDOManager, V4DDO, V5DDO, validateDDO } from '../../services/ddoManager.js';
-import { DDOExampleV4, DDOExampleV5, invalidDDOV4, invalidDDOV5 } from '../data/ddo.js';
+import {
+  DDOManager,
+  V4DDO,
+  V5DDO,
+  validateDDO
+} from '../../services/ddoManager.js';
+import {
+  DDOExampleV4,
+  DDOExampleV5,
+  invalidDDOV4,
+  invalidDDOV5
+} from '../data/ddo.js';
 
 describe('DDOManager Validation Tests', () => {
   it('should validate a valid V4 DDO successfully', async () => {
@@ -27,16 +37,20 @@ describe('DDOManager Validation Tests', () => {
     const validationResult = await validateDDO(invalidCopy);
     expect(validationResult[0]).to.eql(false);
     expect(validationResult[1]).to.have.property('metadata');
-    expect(validationResult[1].metadata).to.include('metadata is missing or invalid.');
+    expect(validationResult[1].metadata).to.include(
+      'metadata is missing or invalid.'
+    );
   });
 
   it('should fail V5 DDO validation due to missing credentialSubject services', async () => {
     const invalidCopy = JSON.parse(JSON.stringify(DDOExampleV5));
-    delete invalidCopy.credentialSubject.services
+    delete invalidCopy.credentialSubject.services;
     const validationResult = await validateDDO(invalidCopy);
     expect(validationResult[0]).to.eql(false);
     expect(validationResult[1]).to.have.property('services');
-    expect(validationResult[1].services).to.include('services are missing or invalid.');
+    expect(validationResult[1].services).to.include(
+      'services are missing or invalid.'
+    );
   });
 
   it('should return a valid DID for V4 DDO', () => {
@@ -47,12 +61,17 @@ describe('DDOManager Validation Tests', () => {
 
   it('should return a valid DID for V5 DDO', () => {
     const ddoInstance = new V5DDO(DDOExampleV5);
-    const did = ddoInstance.makeDid(DDOExampleV5.credentialSubject.nftAddress, '137');
+    const did = ddoInstance.makeDid(
+      DDOExampleV5.credentialSubject.nftAddress,
+      '137'
+    );
     expect(did).to.match(/^did:ope:/);
   });
 
   it('should throw an error for unsupported DDO versions', () => {
     const unsupportedDDO = { ...DDOExampleV4, version: '3.0.0' };
-    expect(() => DDOManager.getDDOClass(unsupportedDDO)).to.throw('Unsupported DDO version: 3.0.0');
+    expect(() => DDOManager.getDDOClass(unsupportedDDO)).to.throw(
+      'Unsupported DDO version: 3.0.0'
+    );
   });
 });

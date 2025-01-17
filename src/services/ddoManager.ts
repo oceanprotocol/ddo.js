@@ -1,18 +1,17 @@
 import formats from '@rdfjs/formats-common';
+import rdf from '@zazuko/env-node';
+import { createHash } from 'crypto';
+import { getAddress } from 'ethers';
+import { dirname, resolve } from 'path';
+import { fromRdf } from 'rdf-literal';
 // @ts-ignore
 import SHACLValidator from 'rdf-validate-shacl';
-import { createHash } from 'crypto'
-import { fileURLToPath } from 'url'
-import { dirname, resolve } from 'path'
-import { Readable } from 'stream'
-import rdf from '@zazuko/env-node'
-import { fromRdf } from 'rdf-literal'
-import { getAddress } from 'ethers'
+import { Readable } from 'stream';
+import { fileURLToPath } from 'url';
 import { AssetFields } from '../@types/AssetTypes';
-import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index';
-import { Service as ServiceV5 } from '../@types/DDO5/Service';
 import { Service as ServiceV4 } from '../@types/DDO4/Service';
-
+import { Service as ServiceV5 } from '../@types/DDO5/Service';
+import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -46,7 +45,7 @@ export abstract class DDOManager {
    * - **chainId**: The blockchain chain ID where the asset is registered.
    * - **nftAddress**: The address of the NFT representing the asset.
    * - **event** (optional): The last event related to the asset.
-   * 
+   *
    * @returns The DDO fields as `DDOFields` or `CredentialSubject`.
    */
   abstract getDDOFields(): DDOFields | CredentialSubject;
@@ -59,7 +58,7 @@ export abstract class DDOManager {
    * - **nft** (optional): Information about the NFT representing the asset.
    * - **purgatory** (optional): Purgatory status of the asset, if applicable.
    * - **stats** (optional): Statistical information about the asset (e.g., usage, views).
-   * 
+   *
    * @returns The asset fields as `AssetFields`.
    */
   abstract getAssetFields(): AssetFields;
@@ -73,10 +72,10 @@ export abstract class DDOManager {
   }
 
   /**
-  * Abstract method to update multiple fields.
-  * @param fields - Partial object containing fields to update.
-  * @returns The updated DDO data.
-  */
+   * Abstract method to update multiple fields.
+   * @param fields - Partial object containing fields to update.
+   * @returns The updated DDO data.
+   */
   abstract updateFields(fields: UpdateFields): Record<string, any>;
 
   /**
@@ -97,9 +96,9 @@ export abstract class DDOManager {
     if (!ALLOWED_VERSIONS.includes(version)) {
       throw new Error(`Unsupported schema version: ${version}`);
     }
-    const path = `../../schemas/${version}.ttl`
+    const path = `../../schemas/${version}.ttl`;
     const currentModulePath = fileURLToPath(import.meta.url);
-    const currentDirectory = dirname(currentModulePath)
+    const currentDirectory = dirname(currentModulePath);
     return resolve(currentDirectory, path);
   }
 
@@ -134,7 +133,7 @@ export class V4DDO extends DDOManager {
       services: data.services || null,
       chainId: data.chainId || null,
       credentials: data.credentials || null,
-      nftAddress: data.nftAddress || null,
+      nftAddress: data.nftAddress || null
     };
   }
 
@@ -144,7 +143,7 @@ export class V4DDO extends DDOManager {
       purgatory: this.getDDOData().purgatory,
       event: this.getDDOData().event,
       datatokens: this.getDDOData().datatokens,
-      nft: this.getDDOData().nft,
+      nft: this.getDDOData().nft
     };
   }
 
@@ -154,7 +153,7 @@ export class V4DDO extends DDOManager {
       createHash('sha256')
         .update(getAddress(nftAddress) + chainId)
         .digest('hex')
-    )
+    );
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
@@ -165,56 +164,57 @@ export class V4DDO extends DDOManager {
     if (fields.nft) this.getDDOData().nft = fields.nft;
     if (fields.event) this.getDDOData().event = fields.event;
     if (fields.purgatory) this.getDDOData().purgatory = fields.purgatory;
-    if (fields.services) this.getDDOData().services = fields.services as ServiceV4[];
+    if (fields.services)
+      this.getDDOData().services = fields.services as ServiceV4[];
     if (fields.stats) this.getDDOData().stats = fields.stats;
     return this.getDDOData();
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()))
-    const { chainId, nftAddress } = ddoCopy
-    const extraErrors: Record<string, string[]> = {}
+    const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
+    const { chainId, nftAddress } = ddoCopy;
+    const extraErrors: Record<string, string[]> = {};
     ddoCopy['@type'] = 'DDO';
     ddoCopy['@context'] = {
       '@vocab': 'http://schema.org/'
-    }
+    };
     if (!chainId) {
-      if (!('chainId' in extraErrors)) extraErrors.chainId = []
-      extraErrors.chainId.push('chainId is missing or invalid.')
+      if (!('chainId' in extraErrors)) extraErrors.chainId = [];
+      extraErrors.chainId.push('chainId is missing or invalid.');
     }
 
     try {
-      getAddress(nftAddress)
+      getAddress(nftAddress);
     } catch (err) {
-      if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = []
-      extraErrors.nftAddress.push('nftAddress is missing or invalid.')
+      if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
+      extraErrors.nftAddress.push('nftAddress is missing or invalid.');
     }
 
     if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
-      if (!('id' in extraErrors)) extraErrors.id = []
-      extraErrors.id.push('did is not valid for chain Id and nft address')
+      if (!('id' in extraErrors)) extraErrors.id = [];
+      extraErrors.id.push('did is not valid for chain Id and nft address');
     }
     const schemaFilePath = this.getSchema(ddoCopy.version);
-    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath))
-    const dataStream = Readable.from(JSON.stringify(ddoCopy))
-    const output = formats.parsers.import('application/ld+json', dataStream)
-    const data = await rdf.dataset().import(output)
-    const validator = new SHACLValidator(shapes, { factory: rdf })
-    const report = await validator.validate(data)
+    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
+    const dataStream = Readable.from(JSON.stringify(ddoCopy));
+    const output = formats.parsers.import('application/ld+json', dataStream);
+    const data = await rdf.dataset().import(output);
+    const validator = new SHACLValidator(shapes, { factory: rdf });
+    const report = await validator.validate(data);
     if (report.conforms) {
-      return [true, {}]
+      return [true, {}];
     }
     for (const result of report.results) {
-      const key = result.path?.value.replace('http://schema.org/', '')
+      const key = result.path?.value.replace('http://schema.org/', '');
       if (key) {
-        if (!(key in extraErrors)) extraErrors[key] = []
-        extraErrors[key].push(fromRdf(result.message[0]))
+        if (!(key in extraErrors)) extraErrors[key] = [];
+        extraErrors[key].push(fromRdf(result.message[0]));
       }
     }
     extraErrors.fullReport = await report.dataset.serialize({
       format: 'application/ld+json'
-    })
-    return [false, extraErrors]
+    });
+    return [false, extraErrors];
   }
 }
 
@@ -230,7 +230,7 @@ export class V5DDO extends DDOManager {
       createHash('sha256')
         .update(getAddress(nftAddress) + chainId)
         .digest('hex')
-    )
+    );
   }
 
   getDDOFields(): CredentialSubject {
@@ -241,7 +241,7 @@ export class V5DDO extends DDOManager {
       services: data.credentialSubject?.services || null,
       chainId: data.credentialSubject?.chainId || null,
       credentials: data.credentialSubject?.credentials || null,
-      nftAddress: data.credentialSubject?.nftAddress || null,
+      nftAddress: data.credentialSubject?.nftAddress || null
     };
   }
 
@@ -251,7 +251,7 @@ export class V5DDO extends DDOManager {
       purgatory: this.getDDOData().credentialSubject?.purgatory,
       event: this.getDDOData().credentialSubject?.event,
       datatokens: this.getDDOData().credentialSubject?.datatokens,
-      nft: this.getDDOData().credentialSubject?.nft,
+      nft: this.getDDOData().credentialSubject?.nft
     };
   }
 
@@ -264,7 +264,8 @@ export class V5DDO extends DDOManager {
     if (fields.nft) credentialSubject.nft = fields.nft;
     if (fields.event) credentialSubject.event = fields.event;
     if (fields.purgatory) credentialSubject.purgatory = fields.purgatory;
-    if (fields.services) credentialSubject.services = fields.services as ServiceV5[];
+    if (fields.services)
+      credentialSubject.services = fields.services as ServiceV5[];
     if (fields.stats) credentialSubject.stats = fields.stats;
     this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();
@@ -272,12 +273,12 @@ export class V5DDO extends DDOManager {
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
     const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
-    const { chainId, nftAddress } = ddoCopy.credentialSubject
+    const { chainId, nftAddress } = ddoCopy.credentialSubject;
     const extraErrors: Record<string, string[]> = {};
-    ddoCopy['@type'] = 'VerifiableCredential'
+    ddoCopy['@type'] = 'VerifiableCredential';
     ddoCopy['@context'] = {
       '@vocab': 'https://www.w3.org/ns/credentials/v2/'
-    }
+    };
     if (!ddoCopy.credentialSubject.chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
     }
@@ -293,11 +294,11 @@ export class V5DDO extends DDOManager {
     }
 
     if (!ddoCopy.credentialSubject.metadata) {
-      extraErrors.metadata = ["metadata is missing or invalid."];
+      extraErrors.metadata = ['metadata is missing or invalid.'];
     }
 
     if (!ddoCopy.credentialSubject.services) {
-      extraErrors.services = ["services are missing or invalid."];
+      extraErrors.services = ['services are missing or invalid.'];
     }
 
     const schemaFilePath = this.getSchema(ddoCopy.version);
@@ -314,7 +315,10 @@ export class V5DDO extends DDOManager {
     }
 
     for (const result of report.results) {
-      const key = result?.path?.value.replace('https://www.w3.org/ns/credentials/v2/', '');
+      const key = result?.path?.value.replace(
+        'https://www.w3.org/ns/credentials/v2/',
+        ''
+      );
       if (key) {
         if (!(key in extraErrors)) extraErrors[key] = [];
         extraErrors[key].push(result.message[0].value);
@@ -323,12 +327,14 @@ export class V5DDO extends DDOManager {
 
     extraErrors.fullReport = await report.dataset.serialize({
       format: 'application/ld+json'
-    })
+    });
     return [false, extraErrors];
   }
 }
 
-export async function validateDDO(ddoData: Record<string, unknown>): Promise<[boolean, Record<string, string[]>]> {
+export async function validateDDO(
+  ddoData: Record<string, unknown>
+): Promise<[boolean, Record<string, string[]>]> {
   try {
     const ddoInstance = DDOManager.getDDOClass(ddoData);
     return await ddoInstance.validate();

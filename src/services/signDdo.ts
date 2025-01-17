@@ -1,11 +1,11 @@
-import { importJWK, JWTPayload, jwtVerify, SignJWT } from 'jose'
-import axios from 'axios'
+import { importJWK, JWTPayload, jwtVerify, SignJWT } from 'jose';
+import axios from 'axios';
 import {
   IssuerKey,
   IssuerKeyJWK,
   IssuerPublicKeyJWK,
   SignedCredential
-} from '../@types/IssuerSignature'
+} from '../@types/IssuerSignature';
 
 /**
  * Signs a verifiable credential using Walt.id's issuer API.
@@ -28,13 +28,13 @@ export async function signCredentialWithWaltId(
       issuerDid,
       issuerKey,
       subjectDid: verifiableCredential.credentialSubject.id
-    })
-    const jws = response.data
-    const header = { alg: issuerKey.jwk.kty }
-    return { jws, header, issuer: issuerDid }
+    });
+    const jws = response.data;
+    const header = { alg: issuerKey.jwk.kty };
+    return { jws, header, issuer: issuerDid };
   } catch (error) {
-    console.error('Error signing credential with WaltId:', error)
-    throw error
+    console.error('Error signing credential with WaltId:', error);
+    throw error;
   }
 }
 
@@ -52,19 +52,19 @@ export async function signCredential(
   publicKeyHex: string
 ): Promise<SignedCredential> {
   try {
-    const key = await importJWK(issuerKeyJWK, issuerKeyJWK.alg)
+    const key = await importJWK(issuerKeyJWK, issuerKeyJWK.alg);
 
     const jws = await new SignJWT(verifiableCredential as unknown as JWTPayload)
       .setProtectedHeader({ alg: issuerKeyJWK.alg })
       .setIssuedAt()
       .setIssuer(publicKeyHex)
-      .sign(key)
-    const header = { alg: issuerKeyJWK.alg }
+      .sign(key);
+    const header = { alg: issuerKeyJWK.alg };
 
-    return { jws, header, issuer: publicKeyHex }
+    return { jws, header, issuer: publicKeyHex };
   } catch (error) {
-    console.error('Error signing credential:', error)
-    throw error
+    console.error('Error signing credential:', error);
+    throw error;
   }
 }
 
@@ -79,12 +79,12 @@ export async function verifyCredential(
   jws: string,
   issuerPublicKeyJWK: IssuerPublicKeyJWK
 ): Promise<JWTPayload> {
-  const key = await importJWK(issuerPublicKeyJWK, 'ES256K')
+  const key = await importJWK(issuerPublicKeyJWK, 'ES256K');
   try {
-    const { payload } = await jwtVerify(jws, key)
-    return payload
+    const { payload } = await jwtVerify(jws, key);
+    return payload;
   } catch (error) {
-    console.error('Verification failed:', error)
-    throw error
+    console.error('Verification failed:', error);
+    throw error;
   }
 }

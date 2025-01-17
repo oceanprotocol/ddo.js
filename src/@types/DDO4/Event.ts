@@ -3,29 +3,29 @@ export interface Event {
    * TX id of the last create/update
    * @type {string}
    */
-  txid?: string
+  txid?: string;
 
   /**
    * Block of txid
    * @type {number}
    */
-  block?: number
+  block?: number;
 
   /**
    * Sender of tx
    * @type {String}
    */
-  from?: string
+  from?: string;
 
   /**
    * Contract
    * @type {String}
    */
-  contract?: string
+  contract?: string;
 
   /**
    * datetime of tx
    * @type {String}
    */
-  datetime?: string
+  datetime?: string;
 }

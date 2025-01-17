@@ -13,11 +13,11 @@ export interface RemoteSource {
   url?: string;
   method?: string;
   headers?: string | Record<string, string | number | boolean>;
-  ipfsCid?: string
+  ipfsCid?: string;
 }
 
 export interface LanguageValueObject {
-  "@value": string;
-  "@language": string;
-  "@direction": string;
+  '@value': string;
+  '@language': string;
+  '@direction': string;
 }

@@ -34,7 +34,7 @@ describe('DDOManager', () => {
         purgatory: DDOExampleV4.purgatory,
         event: DDOExampleV4.event,
         datatokens: DDOExampleV4.datatokens,
-        nft: DDOExampleV4.nft,
+        nft: DDOExampleV4.nft
       });
     });
   });
@@ -59,7 +59,7 @@ describe('DDOManager', () => {
         services: DDOExampleV5.credentialSubject.services,
         credentials: DDOExampleV5.credentialSubject.credentials,
         chainId: DDOExampleV5.credentialSubject.chainId,
-        nftAddress: DDOExampleV5.credentialSubject.nftAddress,
+        nftAddress: DDOExampleV5.credentialSubject.nftAddress
       });
     });
 
@@ -70,7 +70,7 @@ describe('DDOManager', () => {
         purgatory: DDOExampleV5.credentialSubject.purgatory,
         event: DDOExampleV5.credentialSubject.event,
         datatokens: DDOExampleV5.credentialSubject.datatokens,
-        nft: DDOExampleV5.credentialSubject.nft,
+        nft: DDOExampleV5.credentialSubject.nft
       });
     });
   });

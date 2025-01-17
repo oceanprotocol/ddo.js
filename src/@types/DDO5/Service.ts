@@ -1,7 +1,7 @@
-import { ConsumerParameter } from "./Algorithm";
-import { Compute } from "./Compute";
-import { LanguageValueObject, RemoteObject } from "./Remote";
-import { State } from "./State";
+import { ConsumerParameter } from './Algorithm';
+import { Compute } from './Compute';
+import { LanguageValueObject, RemoteObject } from './Remote';
+import { State } from './State';
 
 export interface Service {
   id: string;
@@ -28,6 +28,6 @@ export interface Service {
 }
 
 export enum ServiceType {
-  Access = "access",
-  Compute = "compute",
+  Access = 'access',
+  Compute = 'compute'
 }

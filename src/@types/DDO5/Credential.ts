@@ -1,32 +1,32 @@
 export interface Credential {
-  allow?: (CredentialAddressBased | CredentialPolicyBased)[]
-  deny?: (CredentialAddressBased | CredentialPolicyBased)[]
+  allow?: (CredentialAddressBased | CredentialPolicyBased)[];
+  deny?: (CredentialAddressBased | CredentialPolicyBased)[];
 }
 
 export interface CredentialAddressBased {
-  type: 'address'
-  values: string[]
+  type: 'address';
+  values: string[];
 }
 
 export interface CredentialPolicyBased {
-  type: 'verifiableCredential'
-  requestCredentials: RequestCredential[]
+  type: 'verifiableCredential';
+  requestCredentials: RequestCredential[];
 }
 
-export type RequestCredential = string | DetailedCredential
+export type RequestCredential = string | DetailedCredential;
 
 export interface DetailedCredential {
-  credential?: string
-  policies?: Policy[]
+  credential?: string;
+  policies?: Policy[];
 }
 
-export type Policy = string | PolicyDetail
+export type Policy = string | PolicyDetail;
 
 export interface PolicyDetail {
-  policy: string
-  args: PolicyArgs
+  policy: string;
+  args: PolicyArgs;
 }
 
 export interface PolicyArgs {
-  type: string
+  type: string;
 }

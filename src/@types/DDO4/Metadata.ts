@@ -1,23 +1,23 @@
-import { ConsumerParameter } from './ConsumerParameter'
+import { ConsumerParameter } from './ConsumerParameter';
 
 export interface MetadataAlgorithm {
   /**
    * Programming language used to implement the software.
    * @type {string}
    */
-  language?: string
+  language?: string;
 
   /**
    * Version of the software preferably in SemVer notation.
    * @type {string}
    */
-  version?: string
+  version?: string;
 
   /**
    * Rawcode
    * @type {string}
    */
-  rawcode?: string
+  rawcode?: string;
 
   /**
    * Object describing the Docker container image.
@@ -28,38 +28,38 @@ export interface MetadataAlgorithm {
      * The command to execute, or script to run inside the Docker image.
      * @type {string}
      */
-    entrypoint: string
+    entrypoint: string;
 
     /**
      * Name of the Docker image.
      * @type {string}
      */
-    image: string
+    image: string;
 
     /**
      * Tag of the Docker image.
      * @type {string}
      */
-    tag: string
+    tag: string;
 
     /**
      * Checksum of the Docker image.
      * @type {string}
      */
-    checksum: string
+    checksum: string;
 
     /**
      * Array of objects describing the consumer parameters
      * @type {ConsumerParameter[]}
      */
-    consumerParameters?: ConsumerParameter[]
-  }
+    consumerParameters?: ConsumerParameter[];
+  };
 
   /**
    * Array of objects describing the consumer parameters
    * @type {ConsumerParameter[]}
    */
-  consumerParameters?: ConsumerParameter[]
+  consumerParameters?: ConsumerParameter[];
 }
 
 export interface Metadata {
@@ -67,99 +67,99 @@ export interface Metadata {
    * Contains the date of publishing in ISO Date Time
    * @type {string}
    */
-  created: string
+  created: string;
 
   /**
    * Contains the date of last update in ISO Date Time
    * @type {string}
    */
-  updated: string
+  updated: string;
 
   /**
    * Descriptive name or title of the asset.
    * @type {string}
    */
-  name: string
+  name: string;
 
   /**
    * Details of what the resource is.
    * @type {string}
    */
-  description: string
+  description: string;
 
   /**
    * Asset type. Includes "dataset" (e.g. csv file), "algorithm" (e.g. Python script).
    * Each type needs a different subset of metadata attributes.
    * @type {'dataset' | 'algorithm'}
    */
-  type: 'dataset' | 'algorithm'
+  type: 'dataset' | 'algorithm';
 
   /**
    * Name of the entity generating this data (e.g. Tfl, Disney Corp, etc.).
    * @type {string}
    */
-  author: string
+  author: string;
 
   /**
    * Short name referencing the license of the asset.
    * If it’s not specified, the following value will be added: “No License Specified”.
    * @type {string}
    */
-  license: string
+  license: string;
 
   /**
    * Mapping of URL strings for data samples, or links to find out more information.
    * Links may be to either a URL or another asset.
    * @type {string[]}
    */
-  links?: string[]
+  links?: string[];
 
   /**
    * Array of keywords or tags used to describe this content. Empty by default.
    * @type {string[]}
    */
-  tags?: string[]
+  tags?: string[];
 
   /**
    * Array of categories associated to the asset. Note: recommended to use tags instead of this.
    * @type {string[]}
    */
-  categories?: string[]
+  categories?: string[];
 
   /**
    * The party holding the legal copyright. Empty by default.
    * @type {string}
    */
-  copyrightHolder?: string
+  copyrightHolder?: string;
 
   /**
    *The language of the content. Use one of the language codes from the IETF BCP 47 standard
    * @type {string}
    */
-  contentLanguage?: string
+  contentLanguage?: string;
 
   /**
    * Information about asset of type algorithm. Required for algorithm assets.
    * @type {MetadataAlgorithm}
    */
-  algorithm?: MetadataAlgorithm
+  algorithm?: MetadataAlgorithm;
 
   /**
    * Stores additional information, this is customizable by publisher
    * @type {any}
    */
-  additionalInformation?: any
+  additionalInformation?: any;
 }
 
 export interface MetadataProof {
-  validatorAddress?: string
-  r?: string
-  s?: string
-  v?: number
+  validatorAddress?: string;
+  r?: string;
+  s?: string;
+  v?: number;
 }
 export interface ValidateMetadata {
-  valid: Boolean
-  errors?: Object
-  hash?: string
-  proof?: MetadataProof
+  valid: Boolean;
+  errors?: Object;
+  hash?: string;
+  proof?: MetadataProof;
 }

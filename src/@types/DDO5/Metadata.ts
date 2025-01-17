@@ -1,4 +1,4 @@
-import { LanguageValueObject, RemoteObject } from "./Remote";
+import { LanguageValueObject, RemoteObject } from './Remote';
 
 export interface Metadata {
   created: string;
@@ -20,7 +20,6 @@ export interface Metadata {
   // Required if asset type is algorithm
   algorithm?: Algorithm;
 }
-
 
 export interface License {
   name: string;

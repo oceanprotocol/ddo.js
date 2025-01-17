@@ -54,7 +54,8 @@ export const DDOExampleV4 = {
       address: '0xfF4AE9869Cafb5Ff725f962F3Bbc22Fb303A8aD8',
       name: 'Boorish Fish Token',
       symbol: 'BOOFIS-23',
-      serviceId: '24654b91482a3351050510ff72694d88edae803cf31a5da993da963ba0087648'
+      serviceId:
+        '24654b91482a3351050510ff72694d88edae803cf31a5da993da963ba0087648'
     }
   ],
   stats: {
@@ -70,7 +71,8 @@ export const DDOExampleV4 = {
     templateId: 2,
     publisherMarketOrderFee: '0',
     type: 'fixed',
-    addressOrId: '0xd829c22afa50a25ad965e2c2f3d89940a6a27dbfabc2631964ea882883bc7d11',
+    addressOrId:
+      '0xd829c22afa50a25ad965e2c2f3d89940a6a27dbfabc2631964ea882883bc7d11',
     price: '1000',
     isPurchasable: true,
     baseToken: {
@@ -86,7 +88,7 @@ export const DDOExampleV4 = {
     }
   },
   credentials: null
-}
+};
 
 export const DDOExampleV5 = {
   '@context': ['https://www.w3.org/ns/credentials/v2'],
@@ -144,17 +146,17 @@ export const DDOExampleV5 = {
       allow: {
         request_credentials: [
           {
-            type: "VerifiableId",
-            format: "jwt_vc_json"
+            type: 'VerifiableId',
+            format: 'jwt_vc_json'
           },
           {
-            type: "ProofOfResidence",
-            format: "jwt_vc_json"
+            type: 'ProofOfResidence',
+            format: 'jwt_vc_json'
           },
           {
-            type: "OpenBadgeCredential",
-            format: "jwt_vc_json",
-            policies: ["signature"]
+            type: 'OpenBadgeCredential',
+            format: 'jwt_vc_json',
+            policies: ['signature']
           }
         ]
       }
@@ -184,7 +186,8 @@ export const DDOExampleV5 = {
         address: '0xfF4AE9869Cafb5Ff725f962F3Bbc22Fb303A8aD8',
         name: 'Boorish Fish Token',
         symbol: 'BOOFIS-23',
-        serviceId: '24654b91482a3351050510ff72694d88edae803cf31a5da993da963ba0087648'
+        serviceId:
+          '24654b91482a3351050510ff72694d88edae803cf31a5da993da963ba0087648'
       }
     ],
     stats: {
@@ -197,12 +200,12 @@ export const DDOExampleV5 = {
       }
     },
     chainId: 137,
-    nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
+    nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656'
   },
   issuer: 'did:op:issuer-did',
   type: ['VerifiableCredential'],
-  additionalDdos: [{ type: "", data: "" }]
-}
+  additionalDdos: [{ type: '', data: '' }]
+};
 
 export const invalidDDOV4 = {
   '@context': ['https://w3id.org/did/v1'],
@@ -210,7 +213,7 @@ export const invalidDDOV4 = {
   version: '4.1.0',
   chainId: 137,
   nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656'
-}
+};
 
 export const invalidDDOV5 = {
   '@context': ['https://www.w3.org/ns/credentials/v2'],
@@ -255,5 +258,5 @@ export const invalidDDOV5 = {
   },
   issuer: 'did:op:issuer-did',
   type: ['VerifiableCredential'],
-  additionalDdos: [{ type: "", data: "" }]
-}
+  additionalDdos: [{ type: '', data: '' }]
+};
