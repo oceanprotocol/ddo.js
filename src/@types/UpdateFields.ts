@@ -3,6 +3,7 @@ import { Service as ServiceV4 } from "./DDO4/Service";
 import { Service as ServiceV5 } from "./DDO5/Service";
 
 export interface UpdateFields {
+  id?: string;
   nftAddress?: string;
   chainId?: number;
   datatokens?: AssetDatatoken[];

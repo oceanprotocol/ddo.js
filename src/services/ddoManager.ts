@@ -158,6 +158,7 @@ export class V4DDO extends DDOManager {
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
+    if (fields.id) this.getDDOData().id = fields.id;
     if (fields.nftAddress) this.getDDOData().nftAddress = fields.nftAddress;
     if (fields.chainId) this.getDDOData().chainId = fields.chainId;
     if (fields.datatokens) this.getDDOData().datatokens = fields.datatokens;
@@ -256,6 +257,7 @@ export class V5DDO extends DDOManager {
 
   updateFields(fields: UpdateFields): Record<string, any> {
     const credentialSubject = this.getDDOData().credentialSubject || {};
+    if (fields.id) this.getDDOData().id = fields.id;
     if (fields.nftAddress) credentialSubject.nftAddress = fields.nftAddress;
     if (fields.chainId) credentialSubject.chainId = fields.chainId;
     if (fields.datatokens) credentialSubject.datatokens = fields.datatokens;
