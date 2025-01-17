@@ -70,6 +70,13 @@ export abstract class DDOManager {
   }
 
   /**
+  * Abstract method to update the NFT address.
+  * @param nftAddress - The new NFT address.
+  * @returns The updated DDO data.
+  */
+  abstract updateNftAddress(nftAddress?: string): Record<string, any>;
+
+  /**
    * Method to retrieve the DID.
    * @returns The DID of ddo.
    */
@@ -145,6 +152,11 @@ export class V4DDO extends DDOManager {
         .update(getAddress(nftAddress) + chainId)
         .digest('hex')
     )
+  }
+
+  updateNftAddress(nftAddress: string): Record<string, any> {
+    this.getDDOData().nftAddress = nftAddress;
+    return this.getDDOData();
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
@@ -230,6 +242,14 @@ export class V5DDO extends DDOManager {
       datatokens: this.getDDOData().credentialSubject?.datatokens,
       nft: this.getDDOData().credentialSubject?.nft,
     };
+  }
+
+  updateNftAddress(nftAddress?: string): Record<string, any> {
+    if (!this.getDDOData().credentialSubject) {
+      this.getDDOData().credentialSubject = {};
+    }
+    this.getDDOData().credentialSubject.nftAddress = nftAddress;
+    return this.getDDOData();
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
