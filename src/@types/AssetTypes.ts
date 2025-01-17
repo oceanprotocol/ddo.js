@@ -59,7 +59,7 @@ export interface Purgatory {
    * If asset is in purgatory, contains the reason for being there as defined in `list-purgatory`.
    * @type {string}
    */
-  reason: string
+  reason?: string
 }
 
 export interface AssetDatatoken {
