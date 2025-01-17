@@ -9,7 +9,7 @@ import rdf from '@zazuko/env-node'
 import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
 import { AssetFields } from '../@types/AssetTypes';
-import { CredentialSubject, DDOFields } from '../@types/index';
+import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -70,11 +70,11 @@ export abstract class DDOManager {
   }
 
   /**
-  * Abstract method to update the NFT address.
-  * @param nftAddress - The new NFT address.
+  * Abstract method to update multiple fields.
+  * @param fields - Partial object containing fields to update.
   * @returns The updated DDO data.
   */
-  abstract updateNftAddress(nftAddress?: string): Record<string, any>;
+  abstract updateFields(fields: UpdateFields): Record<string, any>;
 
   /**
    * Method to retrieve the DID.
@@ -154,8 +154,11 @@ export class V4DDO extends DDOManager {
     )
   }
 
-  updateNftAddress(nftAddress: string): Record<string, any> {
-    this.getDDOData().nftAddress = nftAddress;
+  updateFields(fields: UpdateFields): Record<string, any> {
+    if (fields.nftAddress) this.getDDOData().nftAddress = fields.nftAddress;
+    if (fields.chainId) this.getDDOData().chainId = fields.chainId;
+    if (fields.datatokens) this.getDDOData().datatokens = fields.datatokens;
+    if (fields.nft) this.getDDOData().nft = fields.nft;
     return this.getDDOData();
   }
 
@@ -244,11 +247,13 @@ export class V5DDO extends DDOManager {
     };
   }
 
-  updateNftAddress(nftAddress?: string): Record<string, any> {
-    if (!this.getDDOData().credentialSubject) {
-      this.getDDOData().credentialSubject = {};
-    }
-    this.getDDOData().credentialSubject.nftAddress = nftAddress;
+  updateFields(fields: UpdateFields): Record<string, any> {
+    const credentialSubject = this.getDDOData().credentialSubject || {};
+    if (fields.nftAddress) credentialSubject.nftAddress = fields.nftAddress;
+    if (fields.chainId) credentialSubject.chainId = fields.chainId;
+    if (fields.datatokens) credentialSubject.datatokens = fields.datatokens;
+    if (fields.nft) credentialSubject.nft = fields.nft;
+    this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();
   }
 
