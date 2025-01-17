@@ -10,6 +10,9 @@ import { fromRdf } from 'rdf-literal'
 import { getAddress } from 'ethers'
 import { AssetFields } from '../@types/AssetTypes';
 import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index';
+import { Service as ServiceV5 } from '../@types/DDO5/Service';
+import { Service as ServiceV4 } from '../@types/DDO4/Service';
+
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -159,6 +162,10 @@ export class V4DDO extends DDOManager {
     if (fields.chainId) this.getDDOData().chainId = fields.chainId;
     if (fields.datatokens) this.getDDOData().datatokens = fields.datatokens;
     if (fields.nft) this.getDDOData().nft = fields.nft;
+    if (fields.event) this.getDDOData().event = fields.event;
+    if (fields.purgatory) this.getDDOData().purgatory = fields.purgatory;
+    if (fields.services) this.getDDOData().services = fields.services as ServiceV4;
+    if (fields.stats) this.getDDOData().stats = fields.stats;
     return this.getDDOData();
   }
 
@@ -253,6 +260,10 @@ export class V5DDO extends DDOManager {
     if (fields.chainId) credentialSubject.chainId = fields.chainId;
     if (fields.datatokens) credentialSubject.datatokens = fields.datatokens;
     if (fields.nft) credentialSubject.nft = fields.nft;
+    if (fields.event) credentialSubject.event = fields.event;
+    if (fields.purgatory) credentialSubject.purgatory = fields.purgatory;
+    if (fields.services) credentialSubject.services = fields.services as ServiceV5;
+    if (fields.stats) credentialSubject.stats = fields.stats;
     this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();
   }
