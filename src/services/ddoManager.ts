@@ -164,7 +164,7 @@ export class V4DDO extends DDOManager {
     if (fields.nft) this.getDDOData().nft = fields.nft;
     if (fields.event) this.getDDOData().event = fields.event;
     if (fields.purgatory) this.getDDOData().purgatory = fields.purgatory;
-    if (fields.services) this.getDDOData().services = fields.services as ServiceV4;
+    if (fields.services) this.getDDOData().services = fields.services as ServiceV4[];
     if (fields.stats) this.getDDOData().stats = fields.stats;
     return this.getDDOData();
   }
@@ -262,7 +262,7 @@ export class V5DDO extends DDOManager {
     if (fields.nft) credentialSubject.nft = fields.nft;
     if (fields.event) credentialSubject.event = fields.event;
     if (fields.purgatory) credentialSubject.purgatory = fields.purgatory;
-    if (fields.services) credentialSubject.services = fields.services as ServiceV5;
+    if (fields.services) credentialSubject.services = fields.services as ServiceV5[];
     if (fields.stats) credentialSubject.stats = fields.stats;
     this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();

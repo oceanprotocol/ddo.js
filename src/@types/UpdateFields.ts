@@ -9,6 +9,6 @@ export interface UpdateFields {
   nft?: AssetNft;
   event?: AssetLastEvent;
   purgatory?: Purgatory;
-  services?: ServiceV4 | ServiceV5
+  services?: ServiceV4[] | ServiceV5[]
   stats?: Stats
 }
