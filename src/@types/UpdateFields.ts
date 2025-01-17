@@ -1,6 +1,8 @@
+import { AssetDatatoken, AssetNft } from "./AssetTypes";
+
 export interface UpdateFields {
   nftAddress?: string;
-  chainId?: string;
-  datatokens?: any;
-  nft?: any;
+  chainId?: number;
+  datatokens?: AssetDatatoken[];
+  nft?: AssetNft;
 }
