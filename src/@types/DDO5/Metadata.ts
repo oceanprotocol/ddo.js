@@ -1,3 +1,4 @@
+import { MetadataAlgorithm } from '../DDO4/Metadata';
 import { LanguageValueObject, RemoteObject } from './Remote';
 
 export interface Metadata {
@@ -18,7 +19,7 @@ export interface Metadata {
   categories?: string[];
   additionalInformation?: Record<string, string | number | boolean>;
   // Required if asset type is algorithm
-  algorithm?: Algorithm;
+  algorithm?: MetadataAlgorithm;
 }
 
 export interface License {
