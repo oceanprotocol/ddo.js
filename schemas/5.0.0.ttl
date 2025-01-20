@@ -9,6 +9,15 @@
 schema:VerifiableCredentialShape
     sh:targetClass schema:VerifiableCredential ;
     sh:property [
+        sh:path schema:id ;
+        sh:datatype xsd:string ;
+        sh:pattern "^did\\:ope\\:(.*)$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:maxLength 72 ;
+        sh:minLength 72 ;
+    ] ;
+    sh:property [
         sh:path schema:type ;
         sh:nodeKind sh:Literal ;
         sh:minCount 1 ;
@@ -41,15 +50,6 @@ schema:VerifiableCredentialShape
 # Shape for CredentialSubject
 schema:CredentialSubjectShape
     sh:targetClass schema:CredentialSubject ;
-    sh:property [
-        sh:path schema:id ;
-        sh:datatype xsd:string ;
-        sh:pattern "^did\\:ope\\:(.*)$" ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:maxLength 72 ;
-        sh:minLength 72 ;
-    ] ;
     sh:property [
         sh:path schema:metadata ;
         sh:node schema:MetadataShape ;
