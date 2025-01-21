@@ -5,7 +5,7 @@ import {
   IssuerKeyJWK,
   IssuerPublicKeyJWK,
   SignedCredential
-} from '../@types/IssuerSignature';
+} from '../@types/IssuerSignature.js';
 
 /**
  * Signs a verifiable credential using Walt.id's issuer API.

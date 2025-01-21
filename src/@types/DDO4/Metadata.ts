@@ -1,4 +1,4 @@
-import { ConsumerParameter } from './ConsumerParameter';
+import { ConsumerParameter } from './ConsumerParameter.js';
 
 export interface MetadataAlgorithm {
   /**

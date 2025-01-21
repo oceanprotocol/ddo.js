@@ -4,9 +4,9 @@ import {
   AssetNft,
   Purgatory,
   Stats
-} from '../AssetTypes';
-import { CredentialSubject } from './CredentialSubject';
-import { VerifiableCredential } from './VerifiableCredential';
+} from '../AssetTypes.js';
+import { CredentialSubject } from './CredentialSubject.js';
+import { VerifiableCredential } from './VerifiableCredential.js';
 
 export interface AssetCredentialSubject extends CredentialSubject {
   /**

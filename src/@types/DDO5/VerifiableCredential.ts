@@ -1,5 +1,5 @@
-import { CredentialSubject } from './CredentialSubject';
-import { Proof } from './Proof';
+import { CredentialSubject } from './CredentialSubject.js';
+import { Proof } from './Proof.js';
 
 export interface ServiceCredentials {
   verifiableCredential: EnvelopedVerifiableCredential[];

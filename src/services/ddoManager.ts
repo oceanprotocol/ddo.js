@@ -8,10 +8,10 @@ import { fromRdf } from 'rdf-literal';
 import SHACLValidator from 'rdf-validate-shacl';
 import { Readable } from 'stream';
 import { fileURLToPath } from 'url';
-import { AssetFields } from '../@types/AssetTypes';
-import { Service as ServiceV4 } from '../@types/DDO4/Service';
-import { Service as ServiceV5 } from '../@types/DDO5/Service';
-import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index';
+import { AssetFields } from '../@types/AssetTypes.js';
+import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
+import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
+import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index.js';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];

@@ -1,5 +1,5 @@
-import { MetadataAlgorithm } from '../DDO4/Metadata';
-import { LanguageValueObject, RemoteObject } from './Remote';
+import { MetadataAlgorithm } from '../DDO4/Metadata.js';
+import { LanguageValueObject, RemoteObject } from './Remote.js';
 
 export interface Metadata {
   created: string;

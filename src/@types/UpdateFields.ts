@@ -4,9 +4,9 @@ import {
   AssetNft,
   Purgatory,
   Stats
-} from './AssetTypes';
-import { Service as ServiceV4 } from './DDO4/Service';
-import { Service as ServiceV5 } from './DDO5/Service';
+} from './AssetTypes.js';
+import { Service as ServiceV4 } from './DDO4/Service.js';
+import { Service as ServiceV5 } from './DDO5/Service.js';
 
 export interface UpdateFields {
   id?: string;

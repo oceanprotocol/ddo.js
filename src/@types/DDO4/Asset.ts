@@ -1,11 +1,11 @@
-import { DDO } from './DDO';
+import { DDO } from './DDO.js';
 import {
   AssetDatatoken,
   AssetLastEvent,
   AssetNft,
   Purgatory,
   Stats
-} from '../AssetTypes';
+} from '../AssetTypes.js';
 export interface Asset extends DDO {
   /**
    * Contains information about the ERC721 NFT contract which represents the intellectual property of the publisher.

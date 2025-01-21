@@ -1,6 +1,6 @@
-import { Event } from './Event';
-import { Metadata } from './Metadata';
-import { Service } from './Service';
+import { Event } from './Event.js';
+import { Metadata } from './Metadata.js';
+import { Service } from './Service.js';
 
 export interface CredentialSubject {
   id?: string; //DID:

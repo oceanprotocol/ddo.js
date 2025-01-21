@@ -1,7 +1,7 @@
-import { ConsumerParameter } from './Algorithm';
-import { Compute } from './Compute';
-import { LanguageValueObject, RemoteObject } from './Remote';
-import { State } from './State';
+import { ConsumerParameter } from './Algorithm.js';
+import { Compute } from './Compute.js';
+import { LanguageValueObject, RemoteObject } from './Remote.js';
+import { State } from './State.js';
 
 export interface Service {
   id: string;

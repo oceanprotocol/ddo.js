@@ -1,7 +1,7 @@
-import { Credentials } from './Credentials';
-import { Event } from './Event';
-import { Metadata } from './Metadata';
-import { Service } from './Service';
+import { Credentials } from './Credentials.js';
+import { Event } from './Event.js';
+import { Metadata } from './Metadata.js';
+import { Service } from './Service.js';
 
 /**
  * DID Descriptor Object.
