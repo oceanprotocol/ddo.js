@@ -21,5 +21,4 @@ export * from './DDO5/State.js';
 export * from './DDO5/VerifiableCredential.js';
 
 export * from './AssetTypes.js';
-export * from './IssuerSignature.js';
 export * from './UpdateFields.js';
