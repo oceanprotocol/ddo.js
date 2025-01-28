@@ -1,7 +1,7 @@
 import formats from '@rdfjs/formats-common';
 import rdf from '@zazuko/env-node';
 import { createHash } from 'crypto';
-import { getAddress } from 'ethers';
+import { ethers } from 'ethers';
 import { dirname, resolve } from 'path';
 import { fromRdf } from 'rdf-literal';
 // @ts-ignore
@@ -151,7 +151,7 @@ export class V4DDO extends DDOManager {
     return (
       'did:op:' +
       createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
+        .update(ethers.utils.getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -184,7 +184,7 @@ export class V4DDO extends DDOManager {
     }
 
     try {
-      getAddress(nftAddress);
+      ethers.utils.getAddress(nftAddress);
     } catch (err) {
       if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
       extraErrors.nftAddress.push('nftAddress is missing or invalid.');
@@ -198,6 +198,10 @@ export class V4DDO extends DDOManager {
     const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
+    if (!output) {
+      extraErrors.output = ["Output is null or invalid"]
+      return [false, extraErrors]
+    }
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
     const report = await validator.validate(data);
@@ -228,7 +232,7 @@ export class V5DDO extends DDOManager {
     return (
       'did:ope:' +
       createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
+        .update(ethers.utils.getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -284,7 +288,7 @@ export class V5DDO extends DDOManager {
     }
 
     try {
-      getAddress(nftAddress);
+      ethers.utils.getAddress(nftAddress);
     } catch (err) {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
@@ -306,6 +310,10 @@ export class V5DDO extends DDOManager {
     const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
+    if (!output) {
+      extraErrors.output = ["Output is null or invalid"]
+      return [false, extraErrors]
+    }
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
     const report = await validator.validate(data);
