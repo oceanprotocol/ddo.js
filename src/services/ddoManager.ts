@@ -112,7 +112,7 @@ export abstract class DDOManager {
     const { version, id } = ddoData;
     if (version.startsWith('4') && id.startsWith('did:op')) {
       return new V4DDO(ddoData);
-    } else if (version.startsWith('5') && id.startsWith('did:op')) {
+    } else if (version.startsWith('5') && id.startsWith('did:ope')) {
       return new V5DDO(ddoData);
     }
     throw new Error(`Unsupported DDO version: ${version}`);
