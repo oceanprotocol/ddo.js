@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 import { AssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
-import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index.js';
+import { CredentialSubject, DDOFields, Proof, UpdateFields } from '../@types/index.js';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -259,6 +259,10 @@ export class V5DDO extends DDOManager {
     };
   }
 
+  getProof(): Proof {
+    return this.getDDOData().proof
+  }
+
   updateFields(fields: UpdateFields): Record<string, any> {
     const credentialSubject = this.getDDOData().credentialSubject || {};
     if (fields.id) this.getDDOData().id = fields.id;
@@ -271,6 +275,7 @@ export class V5DDO extends DDOManager {
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.stats) credentialSubject.stats = fields.stats;
+    if (fields.proof) this.getDDOData().proof = fields.proof;
     this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();
   }

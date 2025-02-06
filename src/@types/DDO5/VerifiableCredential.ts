@@ -1,5 +1,4 @@
 import { CredentialSubject } from './CredentialSubject.js';
-import { Proof } from './Proof.js';
 
 export interface ServiceCredentials {
   verifiableCredential: EnvelopedVerifiableCredential[];
@@ -18,7 +17,6 @@ export interface VerifiableCredential {
   credentialSubject: CredentialSubject;
   issuer: string;
   version: string;
-  proof: Proof;
   additionalDdos?: additionalVerifiableCredentials[];
 }
 
