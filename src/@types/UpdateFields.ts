@@ -19,5 +19,6 @@ export interface UpdateFields {
   purgatory?: Purgatory;
   services?: ServiceV4[] | ServiceV5[];
   stats?: Stats;
+  issuer?: string;
   proof?: Proof;
 }

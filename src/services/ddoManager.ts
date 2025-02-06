@@ -275,6 +275,7 @@ export class V5DDO extends DDOManager {
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.stats) credentialSubject.stats = fields.stats;
+    if (fields.issuer) this.getDDOData().issuer = fields.issuer;
     if (fields.proof) this.getDDOData().proof = fields.proof;
     this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();
