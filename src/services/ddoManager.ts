@@ -263,6 +263,10 @@ export class V5DDO extends DDOManager {
     return this.getDDOData().proof
   }
 
+  getIssuer(): string {
+    return this.getDDOData().issuer
+  }
+
   updateFields(fields: UpdateFields): Record<string, any> {
     const credentialSubject = this.getDDOData().credentialSubject || {};
     if (fields.id) this.getDDOData().id = fields.id;
