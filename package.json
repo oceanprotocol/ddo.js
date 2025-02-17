@@ -1,6 +1,6 @@
 {
   "name": "ddo.js",
-  "version": "1.0.0",
+  "version": "0.0.1-next.1",
   "repository": "https://github.com/oceanprotocol/ddo.js.git",
   "author": "",
   "license": "MIT",
@@ -29,6 +29,7 @@
     "microbundle": "^0.15.1",
     "mocha": "^11.0.1",
     "prettier": "^3.4.2",
+    "release-it": "^18.1.2",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
