@@ -83,6 +83,7 @@ jobs:
           node-version: '20'
           registry-url: https://registry.npmjs.org/
       - run: npm ci
+      - run: npm run build
 
       # pre-releases, triggered by `next` as part of git tag
       - run: npm publish --access public --tag next
