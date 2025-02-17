@@ -10,9 +10,10 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "mocha": "mocha --node-env=test --config .mocharc.json",
     "clean-tests": "rm -rf ./dist/test",
     "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
-    "test:unit": "yarn clean-tests && yarn build-tests && mocha \"./dist/test/**/*.test.js\"",
+    "test:unit": "npm run clean-tests && npm run build-tests && npm run mocha \"./dist/test/**/*.test.js\"",
     "release": "release-it --non-interactive"
   },
   "devDependencies": {
