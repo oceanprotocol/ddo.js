@@ -1,7 +1,7 @@
 import formats from '@rdfjs/formats-common';
 import rdf from '@zazuko/env-node';
 import { createHash } from 'crypto';
-import { getAddress } from 'ethers';
+import { ethers } from 'ethers';
 import { dirname, resolve } from 'path';
 import { fromRdf } from 'rdf-literal';
 // @ts-ignore
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 import { AssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
-import { CredentialSubject, DDOFields, UpdateFields } from '../@types/index.js';
+import { CredentialSubject, DDOFields, Proof, UpdateFields } from '../@types/index.js';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -112,7 +112,7 @@ export abstract class DDOManager {
     const { version, id } = ddoData;
     if (version.startsWith('4') && id.startsWith('did:op')) {
       return new V4DDO(ddoData);
-    } else if (version.startsWith('5') && id.startsWith('did:op')) {
+    } else if (version.startsWith('5') && id.startsWith('did:ope')) {
       return new V5DDO(ddoData);
     }
     throw new Error(`Unsupported DDO version: ${version}`);
@@ -151,7 +151,7 @@ export class V4DDO extends DDOManager {
     return (
       'did:op:' +
       createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
+        .update(ethers.utils.getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -184,7 +184,7 @@ export class V4DDO extends DDOManager {
     }
 
     try {
-      getAddress(nftAddress);
+      ethers.utils.getAddress(nftAddress);
     } catch (err) {
       if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
       extraErrors.nftAddress.push('nftAddress is missing or invalid.');
@@ -198,6 +198,10 @@ export class V4DDO extends DDOManager {
     const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
+    if (!output) {
+      extraErrors.output = ["Output is null or invalid"]
+      return [false, extraErrors]
+    }
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
     const report = await validator.validate(data);
@@ -228,7 +232,7 @@ export class V5DDO extends DDOManager {
     return (
       'did:ope:' +
       createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
+        .update(ethers.utils.getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -255,6 +259,14 @@ export class V5DDO extends DDOManager {
     };
   }
 
+  getProof(): Proof {
+    return this.getDDOData().proof
+  }
+
+  getIssuer(): string {
+    return this.getDDOData().issuer
+  }
+
   updateFields(fields: UpdateFields): Record<string, any> {
     const credentialSubject = this.getDDOData().credentialSubject || {};
     if (fields.id) this.getDDOData().id = fields.id;
@@ -267,6 +279,8 @@ export class V5DDO extends DDOManager {
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.stats) credentialSubject.stats = fields.stats;
+    if (fields.issuer) this.getDDOData().issuer = fields.issuer;
+    if (fields.proof) this.getDDOData().proof = fields.proof;
     this.getDDOData().credentialSubject = credentialSubject;
     return this.getDDOData();
   }
@@ -284,7 +298,7 @@ export class V5DDO extends DDOManager {
     }
 
     try {
-      getAddress(nftAddress);
+      ethers.utils.getAddress(nftAddress);
     } catch (err) {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
@@ -306,6 +320,10 @@ export class V5DDO extends DDOManager {
     const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
+    if (!output) {
+      extraErrors.output = ["Output is null or invalid"]
+      return [false, extraErrors]
+    }
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
     const report = await validator.validate(data);

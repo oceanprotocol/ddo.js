@@ -37,6 +37,11 @@ describe('DDOManager', () => {
         nft: DDOExampleV4.nft
       });
     });
+
+    it('should update DDO fields for V4 DDO', () => {
+      const ddo = ddoInstance.updateFields({ nftAddress: "0x282d8efce846a88b159800bd4130ad77443fa1a1" });
+      expect(ddo.nftAddress).to.eql("0x282d8efce846a88b159800bd4130ad77443fa1a1");
+    });
   });
 
   describe('V5 DDO get fields Tests', () => {
@@ -72,6 +77,17 @@ describe('DDOManager', () => {
         datatokens: DDOExampleV5.credentialSubject.datatokens,
         nft: DDOExampleV5.credentialSubject.nft
       });
+    });
+
+    it('should update DDO fields for V5 DDO', () => {
+      const ddo = ddoInstance.updateFields({ nftAddress: "0x282d8efce846a88b159800bd4130ad77443fa1a1" });
+      expect(ddo.credentialSubject.nftAddress).to.eql("0x282d8efce846a88b159800bd4130ad77443fa1a1");
+    });
+
+    it('should update Proof field for V5 DDO and the get it', () => {
+      ddoInstance.updateFields({ proof: { header: "header", signature: "abcd" } });
+      const proof = ddoInstance.getProof()
+      expect(proof).to.eql({ header: "header", signature: "abcd" })
     });
   });
 });

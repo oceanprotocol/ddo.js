@@ -6,6 +6,7 @@ import {
   Stats
 } from './AssetTypes.js';
 import { Service as ServiceV4 } from './DDO4/Service.js';
+import { Proof } from './DDO5/Proof.js';
 import { Service as ServiceV5 } from './DDO5/Service.js';
 
 export interface UpdateFields {
@@ -18,4 +19,6 @@ export interface UpdateFields {
   purgatory?: Purgatory;
   services?: ServiceV4[] | ServiceV5[];
   stats?: Stats;
+  issuer?: string;
+  proof?: Proof;
 }

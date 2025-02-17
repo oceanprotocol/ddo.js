@@ -6,6 +6,7 @@ import {
   Stats
 } from '../AssetTypes.js';
 import { CredentialSubject } from './CredentialSubject.js';
+import { Proof } from './Proof.js';
 import { VerifiableCredential } from './VerifiableCredential.js';
 
 export interface AssetCredentialSubject extends CredentialSubject {
@@ -40,6 +41,12 @@ export interface AssetCredentialSubject extends CredentialSubject {
    * @type {Purgatory}
    */
   purgatory: Purgatory;
+
+  /**
+   * The header and signature of this ddo
+   * @type {Proof}
+   */
+  proof: Proof;
 }
 
 export interface Asset extends VerifiableCredential {
