@@ -12,7 +12,8 @@
     "build": "tsc",
     "clean-tests": "rm -rf ./dist/test",
     "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
-    "test:unit": "yarn clean-tests && yarn build-tests && mocha \"./dist/test/**/*.test.js\""
+    "test:unit": "yarn clean-tests && yarn build-tests && mocha \"./dist/test/**/*.test.js\"",
+    "release": "release-it --non-interactive"
   },
   "devDependencies": {
     "@types/chai": "^5.0.1",
