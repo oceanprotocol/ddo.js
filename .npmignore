@@ -1,0 +1,15 @@
+node_modules/
+coverage/
+.github
+.nyc_output
+.travis.yml
+test/
+src/
+tsconfig.json
+tslint.json
+scripts/
+webpack*
+.prettierrc
+.editorconfig
+.eslintrc
+
