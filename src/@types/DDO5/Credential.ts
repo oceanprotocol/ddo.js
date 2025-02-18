@@ -1,6 +1,8 @@
 export interface Credential {
-  allow?: (CredentialAddressBased | CredentialPolicyBased)[];
-  deny?: (CredentialAddressBased | CredentialPolicyBased)[];
+  match_allow?: 'any' | 'all'
+  match_deny: 'any' | 'all'
+  allow?: (CredentialAddressBased | CredentialPolicyBased)[]
+  deny?: CredentialAddressBased[]
 }
 
 export interface CredentialAddressBased {
@@ -9,15 +11,26 @@ export interface CredentialAddressBased {
 }
 
 export interface CredentialPolicyBased {
-  type: 'verifiableCredential';
-  requestCredentials: RequestCredential[];
+  type: string;
+  values: PolicyValue[]
+}
+export interface PolicyValue {
+  request_credentials: RequestCredential[]
+  vp_policies: VP[]
+  vc_policies: VC[]
 }
 
-export type RequestCredential = string | DetailedCredential;
+export interface VPValue {
+  policy: string
+  args: number
+}
+export type VC = string
+export type VP = string | VPValue
 
-export interface DetailedCredential {
-  credential?: string;
-  policies?: Policy[];
+export interface RequestCredential {
+  type: string
+  format: string
+  policies: any[]
 }
 
 export type Policy = string | PolicyDetail;
