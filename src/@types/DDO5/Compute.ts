@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 export interface Compute {
   allowRawAlgorithm: boolean;
   allowNetworkAccess: boolean;

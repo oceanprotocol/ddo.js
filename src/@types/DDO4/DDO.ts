@@ -1,5 +1,4 @@
 import { Credentials } from './Credentials.js';
-import { Event } from './Event.js';
 import { Metadata } from './Metadata.js';
 import { Service } from './Service.js';
 
@@ -58,12 +57,6 @@ export interface DDO {
    * @type {Credentials}
    */
   credentials?: Credentials;
-
-  /**
-   * Describes the event of last metadata event
-   * @type {Event}
-   */
-  event?: Event;
 }
 
 export interface DDOFields {

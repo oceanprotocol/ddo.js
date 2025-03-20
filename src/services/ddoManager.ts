@@ -11,7 +11,12 @@ import { fileURLToPath } from 'url';
 import { AssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
-import { CredentialSubject, DDOFields, Proof, UpdateFields } from '../@types/index.js';
+import {
+  CredentialSubject,
+  DDOFields,
+  Proof,
+  UpdateFields
+} from '../@types/index.js';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -69,6 +74,17 @@ export abstract class DDOManager {
    */
   public getDDOData(): Record<string, any> {
     return this.ddoData;
+  }
+
+  public deleteIndexedMetadataIfExists(
+    ddo: Record<string, any>
+  ): Record<string, any> {
+    const ddoCopy: Record<string, any> = structuredClone(ddo);
+    if ('indexedMetadata' in ddoCopy) {
+      delete ddoCopy.indexedMetadata;
+      return ddoCopy;
+    }
+    return ddo;
   }
 
   /**
@@ -139,11 +155,8 @@ export class V4DDO extends DDOManager {
 
   getAssetFields(): AssetFields {
     return {
-      stats: this.getDDOData().stats,
-      purgatory: this.getDDOData().purgatory,
-      event: this.getDDOData().event,
-      datatokens: this.getDDOData().datatokens,
-      nft: this.getDDOData().nft
+      indexedMetadata: this.getDDOData().indexedMetadata,
+      datatokens: this.getDDOData().datatokens
     };
   }
 
@@ -161,17 +174,23 @@ export class V4DDO extends DDOManager {
     if (fields.nftAddress) this.getDDOData().nftAddress = fields.nftAddress;
     if (fields.chainId) this.getDDOData().chainId = fields.chainId;
     if (fields.datatokens) this.getDDOData().datatokens = fields.datatokens;
-    if (fields.nft) this.getDDOData().nft = fields.nft;
-    if (fields.event) this.getDDOData().event = fields.event;
-    if (fields.purgatory) this.getDDOData().purgatory = fields.purgatory;
+    if (fields.indexedMetadata?.nft)
+      this.getDDOData().indexedMetadata.nft = fields.indexedMetadata.nft;
+    if (fields.indexedMetadata?.event)
+      this.getDDOData().indexedMetadata.event = fields.indexedMetadata.event;
+    if (fields.indexedMetadata?.purgatory)
+      this.getDDOData().indexedMetadata.purgatory =
+        fields.indexedMetadata.purgatory;
     if (fields.services)
       this.getDDOData().services = fields.services as ServiceV4[];
-    if (fields.stats) this.getDDOData().stats = fields.stats;
+    if (fields.indexedMetadata?.stats)
+      this.getDDOData().indexedMetadata.stats = fields.indexedMetadata.stats;
     return this.getDDOData();
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
+    const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
+    const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
     const extraErrors: Record<string, string[]> = {};
     ddoCopy['@type'] = 'DDO';
@@ -199,8 +218,8 @@ export class V4DDO extends DDOManager {
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
     if (!output) {
-      extraErrors.output = ["Output is null or invalid"]
-      return [false, extraErrors]
+      extraErrors.output = ['Output is null or invalid'];
+      return [false, extraErrors];
     }
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });
@@ -251,20 +270,17 @@ export class V5DDO extends DDOManager {
 
   getAssetFields(): AssetFields {
     return {
-      stats: this.getDDOData().credentialSubject?.stats,
-      purgatory: this.getDDOData().credentialSubject?.purgatory,
-      event: this.getDDOData().credentialSubject?.event,
-      datatokens: this.getDDOData().credentialSubject?.datatokens,
-      nft: this.getDDOData().credentialSubject?.nft
+      indexedMetadata: this.getDDOData().credentialSubject?.indexedMetadata,
+      datatokens: this.getDDOData().credentialSubject?.datatokens
     };
   }
 
   getProof(): Proof {
-    return this.getDDOData().proof
+    return this.getDDOData().proof;
   }
 
   getIssuer(): string {
-    return this.getDDOData().issuer
+    return this.getDDOData().issuer;
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
@@ -273,12 +289,16 @@ export class V5DDO extends DDOManager {
     if (fields.nftAddress) credentialSubject.nftAddress = fields.nftAddress;
     if (fields.chainId) credentialSubject.chainId = fields.chainId;
     if (fields.datatokens) credentialSubject.datatokens = fields.datatokens;
-    if (fields.nft) credentialSubject.nft = fields.nft;
-    if (fields.event) credentialSubject.event = fields.event;
-    if (fields.purgatory) credentialSubject.purgatory = fields.purgatory;
+    if (fields.indexedMetadata?.nft)
+      credentialSubject.nft = fields.indexedMetadata.nft;
+    if (fields.indexedMetadata?.event)
+      credentialSubject.event = fields.indexedMetadata.event;
+    if (fields.indexedMetadata?.purgatory)
+      credentialSubject.purgatory = fields.indexedMetadata.purgatory;
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
-    if (fields.stats) credentialSubject.stats = fields.stats;
+    if (fields.indexedMetadata?.stats)
+      credentialSubject.stats = fields.indexedMetadata.stats;
     if (fields.issuer) this.getDDOData().issuer = fields.issuer;
     if (fields.proof) this.getDDOData().proof = fields.proof;
     this.getDDOData().credentialSubject = credentialSubject;
@@ -286,7 +306,8 @@ export class V5DDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    const ddoCopy = JSON.parse(JSON.stringify(this.getDDOData()));
+    const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
+    const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy.credentialSubject;
     const extraErrors: Record<string, string[]> = {};
     ddoCopy['@type'] = 'VerifiableCredential';
@@ -321,8 +342,8 @@ export class V5DDO extends DDOManager {
     const dataStream = Readable.from(JSON.stringify(ddoCopy));
     const output = formats.parsers.import('application/ld+json', dataStream);
     if (!output) {
-      extraErrors.output = ["Output is null or invalid"]
-      return [false, extraErrors]
+      extraErrors.output = ['Output is null or invalid'];
+      return [false, extraErrors];
     }
     const data = await rdf.dataset().import(output);
     const validator = new SHACLValidator(shapes, { factory: rdf });

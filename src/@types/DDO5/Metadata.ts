@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import { MetadataAlgorithm } from '../DDO4/Metadata.js';
 import { LanguageValueObject, RemoteObject } from './Remote.js';
 
@@ -7,7 +8,7 @@ export interface Metadata {
   description: LanguageValueObject;
   copyrightHolder: string;
   name: string;
-  //symbol: string;
+  // symbol: string;
   displayTitle?: LanguageValueObject;
   type: string;
   author?: string;

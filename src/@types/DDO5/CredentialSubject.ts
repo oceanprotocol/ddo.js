@@ -3,7 +3,7 @@ import { Metadata } from './Metadata.js';
 import { Service } from './Service.js';
 
 export interface CredentialSubject {
-  id?: string; //DID:
+  id?: string; // DID:
   metadata: Metadata;
   services: Service[];
   credentials: Credential[];

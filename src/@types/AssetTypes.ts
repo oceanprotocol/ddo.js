@@ -88,45 +88,24 @@ export interface AssetDatatoken {
   serviceId: string;
 }
 
+export type PriceType = 'fixedrate' | 'dispenser';
+
 export interface AssetPrice {
-  /**
-   * The price of the asset expressed as a number. If 0 then the price is FREE.
-   * @type {number}
-   */
-  value: number;
-
-  /**
-   * The symbol that the price of the asset is expressed in.
-   * @type {string}
-   */
-  tokenSymbol?: string;
-
-  /**
-   * The address of the token that the price needs to be paid in.
-   * @type {string}
-   */
-  tokenAddress?: string;
+  type: PriceType;
+  price: string;
+  contract: string;
+  token?: string;
+  exchangeId?: string;
 }
+
 export interface Stats {
-  /**
-   * How often an asset was consumed, meaning how often it was either downloaded or used as part of a compute job.
-   * @type {number}
-   */
-  orders: number;
-
-  /**
-   * Contains information about the price of this asset.
-   * @type {AssetPrice}
-   */
-  price: AssetPrice;
-
-  /**
-   * Total amount of veOCEAN allocated on this asset.
-   * @type {number}
-   */
-  allocated?: number;
+  datatokenAddress: string;
+  name: string;
+  symbol: string;
+  serviceId: string;
+  orders?: number;
+  prices?: AssetPrice[];
 }
-
 export interface AssetLastEvent {
   txid: string;
   block: number;
@@ -135,10 +114,14 @@ export interface AssetLastEvent {
   datetime: string;
 }
 
+export interface IndexedMetadata {
+  nft?: AssetNft;
+  event?: AssetLastEvent;
+  purgatory?: Purgatory;
+  stats?: Stats[];
+}
+
 export interface AssetFields {
   datatokens?: AssetDatatoken[];
-  event?: AssetLastEvent;
-  nft?: AssetNft;
-  purgatory?: Purgatory;
-  stats?: Stats;
+  indexedMetadata?: IndexedMetadata;
 }
