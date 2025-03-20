@@ -51,7 +51,7 @@
     "@types/rdfjs__parser-jsonld": "^2.1.7",
     "@types/rdfjs__to-ntriples": "^3.0.0",
     "@zazuko/env-node": "^2.1.4",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
     "chai": "^5.1.2",
     "crypto": "^1.0.1",
     "ethers": "^5.7.2",
