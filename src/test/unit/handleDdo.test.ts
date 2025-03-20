@@ -29,21 +29,19 @@ describe('DDOManager', () => {
 
     it('should return valid asset fields for V4 DDO', () => {
       const assetFields = ddoInstance.getAssetFields();
-      const indexedMetadata = {
-        stats: DDOExampleV4.stats,
-        purgatory: DDOExampleV4.purgatory,
-        event: DDOExampleV4.event,
-        nft: DDOExampleV4.nft 
-      }
       expect(assetFields).to.eql({
-        indexedMetadata: indexedMetadata,
-        datatokens: DDOExampleV4.datatokens,
+        indexedMetadata: DDOExampleV4.indexedMetadata,
+        datatokens: DDOExampleV4.datatokens
       });
     });
 
     it('should update DDO fields for V4 DDO', () => {
-      const ddo = ddoInstance.updateFields({ nftAddress: "0x282d8efce846a88b159800bd4130ad77443fa1a1" });
-      expect(ddo.nftAddress).to.eql("0x282d8efce846a88b159800bd4130ad77443fa1a1");
+      const ddo = ddoInstance.updateFields({
+        nftAddress: '0x282d8efce846a88b159800bd4130ad77443fa1a1'
+      });
+      expect(ddo.nftAddress).to.eql(
+        '0x282d8efce846a88b159800bd4130ad77443fa1a1'
+      );
     });
   });
 
@@ -73,27 +71,27 @@ describe('DDOManager', () => {
 
     it('should return valid asset fields for V5 DDO', () => {
       const assetFields = ddoInstance.getAssetFields();
-      const indexedMetadata = {
-        stats: DDOExampleV5.credentialSubject.stats,
-        purgatory: DDOExampleV5.credentialSubject.purgatory,
-        event: DDOExampleV5.credentialSubject.event,
-        nft: DDOExampleV5.credentialSubject.nft 
-      }
       expect(assetFields).to.eql({
-        indexedMetadata: indexedMetadata,
-        datatokens: DDOExampleV5.credentialSubject.datatokens,
+        indexedMetadata: DDOExampleV5.credentialSubject.indexedMetadata,
+        datatokens: DDOExampleV5.credentialSubject.datatokens
       });
     });
 
     it('should update DDO fields for V5 DDO', () => {
-      const ddo = ddoInstance.updateFields({ nftAddress: "0x282d8efce846a88b159800bd4130ad77443fa1a1" });
-      expect(ddo.credentialSubject.nftAddress).to.eql("0x282d8efce846a88b159800bd4130ad77443fa1a1");
+      const ddo = ddoInstance.updateFields({
+        nftAddress: '0x282d8efce846a88b159800bd4130ad77443fa1a1'
+      });
+      expect(ddo.credentialSubject.nftAddress).to.eql(
+        '0x282d8efce846a88b159800bd4130ad77443fa1a1'
+      );
     });
 
     it('should update Proof field for V5 DDO and the get it', () => {
-      ddoInstance.updateFields({ proof: { header: "header", signature: "abcd" } });
-      const proof = ddoInstance.getProof()
-      expect(proof).to.eql({ header: "header", signature: "abcd" })
+      ddoInstance.updateFields({
+        proof: { header: 'header', signature: 'abcd' }
+      });
+      const proof = ddoInstance.getProof();
+      expect(proof).to.eql({ header: 'header', signature: 'abcd' });
     });
   });
 });

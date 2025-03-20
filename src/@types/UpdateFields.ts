@@ -1,7 +1,4 @@
-import {
-  AssetDatatoken,
-  IndexedMetadata,
-} from './AssetTypes.js';
+import { AssetDatatoken, IndexedMetadata } from './AssetTypes.js';
 import { Service as ServiceV4 } from './DDO4/Service.js';
 import { Proof } from './DDO5/Proof.js';
 import { Service as ServiceV5 } from './DDO5/Service.js';
@@ -11,7 +8,7 @@ export interface UpdateFields {
   nftAddress?: string;
   chainId?: number;
   datatokens?: AssetDatatoken[];
-  indexedMetadata?: IndexedMetadata
+  indexedMetadata?: IndexedMetadata;
   services?: ServiceV4[] | ServiceV5[];
   issuer?: string;
   proof?: Proof;

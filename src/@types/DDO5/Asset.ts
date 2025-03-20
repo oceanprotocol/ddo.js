@@ -4,7 +4,7 @@ import { Proof } from './Proof.js';
 import { VerifiableCredential } from './VerifiableCredential.js';
 
 export interface AssetCredentialSubject extends CredentialSubject {
-  indexedMetadata?: IndexedMetadata
+  indexedMetadata?: IndexedMetadata;
   /**
    * The header and signature of this ddo
    * @type {Proof}

@@ -88,23 +88,23 @@ export interface AssetDatatoken {
   serviceId: string;
 }
 
-export type PriceType = 'fixedrate' | 'dispenser'
+export type PriceType = 'fixedrate' | 'dispenser';
 
 export interface AssetPrice {
-  type: PriceType
-  price: string
-  contract: string
-  token?: string
-  exchangeId?: string
+  type: PriceType;
+  price: string;
+  contract: string;
+  token?: string;
+  exchangeId?: string;
 }
 
 export interface Stats {
-  datatokenAddress: string
-  name: string
-  symbol: string
-  serviceId: string
-  orders?: number
-  prices?: AssetPrice[]
+  datatokenAddress: string;
+  name: string;
+  symbol: string;
+  serviceId: string;
+  orders?: number;
+  prices?: AssetPrice[];
 }
 export interface AssetLastEvent {
   txid: string;
@@ -115,13 +115,13 @@ export interface AssetLastEvent {
 }
 
 export interface IndexedMetadata {
-  nft?: AssetNft
-  event?: AssetLastEvent
-  purgatory?: Purgatory
-  stats?: Stats
+  nft?: AssetNft;
+  event?: AssetLastEvent;
+  purgatory?: Purgatory;
+  stats?: Stats[];
 }
 
 export interface AssetFields {
   datatokens?: AssetDatatoken[];
-  indexedMetadata?: IndexedMetadata
+  indexedMetadata?: IndexedMetadata;
 }
