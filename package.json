@@ -54,7 +54,7 @@
     "axios": "^1.7.9",
     "chai": "^5.1.2",
     "crypto": "^1.0.1",
-    "ethers": "^5.7.2",
+    "ethers": "^5.8.0",
     "jose": "^5.9.6",
     "lodash": "^4.17.21",
     "rdf-validate-shacl": "^0.5.6"
