@@ -29,12 +29,15 @@ describe('DDOManager', () => {
 
     it('should return valid asset fields for V4 DDO', () => {
       const assetFields = ddoInstance.getAssetFields();
-      expect(assetFields).to.eql({
+      const indexedMetadata = {
         stats: DDOExampleV4.stats,
         purgatory: DDOExampleV4.purgatory,
         event: DDOExampleV4.event,
+        nft: DDOExampleV4.nft 
+      }
+      expect(assetFields).to.eql({
+        indexedMetadata: indexedMetadata,
         datatokens: DDOExampleV4.datatokens,
-        nft: DDOExampleV4.nft
       });
     });
 
@@ -70,12 +73,15 @@ describe('DDOManager', () => {
 
     it('should return valid asset fields for V5 DDO', () => {
       const assetFields = ddoInstance.getAssetFields();
-      expect(assetFields).to.eql({
+      const indexedMetadata = {
         stats: DDOExampleV5.credentialSubject.stats,
         purgatory: DDOExampleV5.credentialSubject.purgatory,
         event: DDOExampleV5.credentialSubject.event,
+        nft: DDOExampleV5.credentialSubject.nft 
+      }
+      expect(assetFields).to.eql({
+        indexedMetadata: indexedMetadata,
         datatokens: DDOExampleV5.credentialSubject.datatokens,
-        nft: DDOExampleV5.credentialSubject.nft
       });
     });
 
