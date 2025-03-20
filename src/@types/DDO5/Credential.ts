@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 export interface Credential {
   allow?: (CredentialAddressBased | CredentialPolicyBased)[];
   deny?: (CredentialAddressBased | CredentialPolicyBased)[];

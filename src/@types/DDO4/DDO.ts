@@ -1,5 +1,4 @@
 import { Credentials } from './Credentials.js';
-import { IndexedMetadata } from '../AssetTypes.js';
 import { Metadata } from './Metadata.js';
 import { Service } from './Service.js';
 
@@ -58,8 +57,6 @@ export interface DDO {
    * @type {Credentials}
    */
   credentials?: Credentials;
-
-  indexedMetadata?: IndexedMetadata
 }
 
 export interface DDOFields {
@@ -69,5 +66,4 @@ export interface DDOFields {
   metadata: Metadata;
   services: Service[];
   credentials?: Credentials;
-  indexedMetadata?: IndexedMetadata
 }
