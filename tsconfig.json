@@ -2,24 +2,19 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "lib": ["ESNext", "dom"],
     "declaration": true,
-    "rootDir": "./src",
     "module": "ES2020",
     "target": "ES2020",
-    "esModuleInterop": true,
     "removeComments": false,
     "experimentalDecorators": true,
     "preserveConstEnums": true,
     "outDir": "./dist",
     "sourceMap": true,
-    "strict": true,
     "skipLibCheck": true,
-    // "baseUrl": "./src",
-    //"paths": {
-      //"@types/*": ["@types/*"]
-    //}
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "test"]
+  "exclude": ["node_modules", "dist","test"]
 }
