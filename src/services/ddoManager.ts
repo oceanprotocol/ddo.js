@@ -17,6 +17,7 @@ import {
   Proof,
   UpdateFields
 } from '../@types/index.js';
+import { existsSync } from 'fs';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
@@ -112,10 +113,16 @@ export abstract class DDOManager {
     if (!ALLOWED_VERSIONS.includes(version)) {
       throw new Error(`Unsupported schema version: ${version}`);
     }
-    const path = `../../schemas/${version}.ttl`;
+
     const currentModulePath = fileURLToPath(import.meta.url);
     const currentDirectory = dirname(currentModulePath);
-    return resolve(currentDirectory, path);
+
+    const schemaPath = resolve(currentDirectory, `../schemas/${version}.ttl`);
+    if (existsSync(schemaPath)) {
+      return schemaPath;
+    }
+
+    return resolve(currentDirectory, `../../schemas/${version}.ttl`);
   }
 
   /**
