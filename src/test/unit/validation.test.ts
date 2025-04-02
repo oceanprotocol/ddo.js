@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import {
   DDOManager,
+  DeprecatedDDO,
   V4DDO,
   V5DDO,
   validateDDO
@@ -8,8 +9,10 @@ import {
 import {
   DDOExampleV4,
   DDOExampleV5,
+  deprecatedDDO,
   invalidDDOV4,
-  invalidDDOV5
+  invalidDDOV5,
+  invalidDeprecatedDDO
 } from '../data/ddo.js';
 
 describe('DDOManager Validation Tests', () => {
@@ -24,6 +27,14 @@ describe('DDOManager Validation Tests', () => {
     const validationResult = await validateDDO(invalidCopy);
     expect(validationResult[0]).to.eql(false);
     expect(validationResult[1].metadata).to.include('Less than 1 values');
+  });
+
+  it('should fail Deprecated DDO validation due to extra fields', async () => {
+    const invalidCopy = JSON.parse(JSON.stringify(invalidDeprecatedDDO));
+    const validationResult = await validateDDO(invalidCopy);
+    expect(validationResult[0]).to.eql(false);
+    console.log('validation fails: ', JSON.stringify(validationResult[1]));
+    // expect(validationResult[1].metadata).to.include('Less than 1 values');
   });
 
   it('should validate a valid V5 DDO successfully (Verifiable Credential)', async () => {
@@ -66,6 +77,12 @@ describe('DDOManager Validation Tests', () => {
       '137'
     );
     expect(did).to.match(/^did:ope:/);
+  });
+
+  it('should return a valid DID for Deprecated DDO', () => {
+    const ddoInstance = new DeprecatedDDO(deprecatedDDO);
+    const did = ddoInstance.makeDid(deprecatedDDO.nftAddress, '137');
+    expect(did).to.match(/^did:op:/);
   });
 
   it('should throw an error for unsupported DDO versions', () => {

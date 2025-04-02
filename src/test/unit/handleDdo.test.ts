@@ -1,6 +1,11 @@
 import { expect } from 'chai';
-import { DDOManager, V4DDO, V5DDO } from '../../services/ddoManager.js';
-import { DDOExampleV4, DDOExampleV5 } from '../data/ddo.js';
+import {
+  DDOManager,
+  V4DDO,
+  V5DDO,
+  DeprecatedDDO
+} from '../../services/ddoManager.js';
+import { DDOExampleV4, DDOExampleV5, deprecatedDDO } from '../data/ddo.js';
 
 describe('DDOManager', () => {
   describe('V4 DDO get fields Tests', () => {
@@ -92,6 +97,45 @@ describe('DDOManager', () => {
       });
       const proof = ddoInstance.getProof();
       expect(proof).to.eql({ header: 'header', signature: 'abcd' });
+    });
+  });
+
+  describe('Deprecated DDO get fields Tests', () => {
+    let ddoInstance: DeprecatedDDO;
+
+    beforeEach(() => {
+      ddoInstance = DDOManager.getDDOClass(deprecatedDDO) as DeprecatedDDO;
+    });
+
+    it('should return a valid DID for Deprecated DDO', () => {
+      const did = ddoInstance.getDid();
+      expect(did).to.equal(DDOExampleV4.id);
+    });
+
+    it('should return valid DDO fields for Deprecated DDO', () => {
+      const ddoFields = ddoInstance.getDDOFields();
+      expect(ddoFields).to.eql({
+        id: deprecatedDDO.id,
+        version: deprecatedDDO.version,
+        chainId: deprecatedDDO.chainId,
+        nftAddress: deprecatedDDO.nftAddress
+      });
+    });
+
+    it('should return valid asset fields for Deprecated DDO', () => {
+      const assetFields = ddoInstance.getAssetFields();
+      expect(assetFields).to.eql({
+        indexedMetadata: deprecatedDDO.indexedMetadata
+      });
+    });
+
+    it('should update DDO fields for V4 DDO', () => {
+      const ddo = ddoInstance.updateFields({
+        nftAddress: '0x282d8efce846a88b159800bd4130ad77443fa1a1'
+      });
+      expect(ddo.nftAddress).to.eql(
+        '0x282d8efce846a88b159800bd4130ad77443fa1a1'
+      );
     });
   });
 });

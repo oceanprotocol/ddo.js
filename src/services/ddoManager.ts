@@ -8,19 +8,28 @@ import { fromRdf } from 'rdf-literal';
 import SHACLValidator from 'rdf-validate-shacl';
 import { Readable } from 'stream';
 import { fileURLToPath } from 'url';
-import { AssetFields } from '../@types/AssetTypes.js';
+import { AssetFields, DeprecatedAssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
 import {
   CredentialSubject,
   DDOFields,
+  DeprecatedDDOFields,
   Proof,
-  UpdateFields
+  UpdateFields,
+  UpdateDeprecatedFields
 } from '../@types/index.js';
 import { existsSync } from 'fs';
 
 const CURRENT_VERSION = '5.0.0';
-const ALLOWED_VERSIONS = ['4.1.0', '4.3.0', '4.5.0', '4.7.0', '5.0.0'];
+const ALLOWED_VERSIONS = [
+  '4.1.0',
+  '4.3.0',
+  '4.5.0',
+  '4.7.0',
+  '5.0.0',
+  'deprecated'
+];
 
 export abstract class DDOManager {
   private ddoData: Record<string, any>;
@@ -54,7 +63,7 @@ export abstract class DDOManager {
    *
    * @returns The DDO fields as `DDOFields` or `CredentialSubject`.
    */
-  abstract getDDOFields(): DDOFields | CredentialSubject;
+  abstract getDDOFields(): DDOFields | CredentialSubject | DeprecatedDDOFields;
 
   /**
    * Abstract method to retrieve asset fields.
@@ -67,7 +76,7 @@ export abstract class DDOManager {
    *
    * @returns The asset fields as `AssetFields`.
    */
-  abstract getAssetFields(): AssetFields;
+  abstract getAssetFields(): AssetFields | DeprecatedAssetFields;
 
   /**
    * Retrieves the DDO data.
@@ -131,12 +140,16 @@ export abstract class DDOManager {
    * @returns An instance of `V4DDO` or `V5DDO`.
    * @throws An error if the version is not supported.
    */
-  public static getDDOClass(ddoData: Record<string, any>): V4DDO | V5DDO {
+  public static getDDOClass(
+    ddoData: Record<string, any>
+  ): V4DDO | V5DDO | DeprecatedDDO {
     const { version, id } = ddoData;
     if (version.startsWith('4') && id.startsWith('did:op')) {
       return new V4DDO(ddoData);
     } else if (version.startsWith('5') && id.startsWith('did:ope')) {
       return new V5DDO(ddoData);
+    } else if (version === 'short') {
+      return new DeprecatedDDO(ddoData);
     }
     throw new Error(`Unsupported DDO version: ${version}`);
   }
@@ -371,6 +384,100 @@ export class V5DDO extends DDOManager {
       }
     }
 
+    extraErrors.fullReport = await report.dataset.serialize({
+      format: 'application/ld+json'
+    });
+    return [false, extraErrors];
+  }
+}
+
+// Deprecated DDO implementation
+export class DeprecatedDDO extends DDOManager {
+  public constructor(ddoData: Record<string, any>) {
+    super(ddoData);
+  }
+
+  makeDid(nftAddress: string, chainId: string): string {
+    return (
+      'did:ope:' +
+      createHash('sha256')
+        .update(ethers.utils.getAddress(nftAddress) + chainId)
+        .digest('hex')
+    );
+  }
+
+  getDDOFields(): DeprecatedDDOFields {
+    const data = this.getDDOData();
+    return {
+      id: data?.id || null,
+      version: 'deprecated',
+      chainId: data.credentialSubject?.chainId || null,
+      nftAddress: data.credentialSubject?.nftAddress || null
+    };
+  }
+
+  getAssetFields(): DeprecatedAssetFields {
+    return {
+      indexedMetadata: this.getDDOData().indexedMetadata
+    };
+  }
+
+  updateFields(fields: UpdateDeprecatedFields): Record<string, any> {
+    const ddo = this.getDDOData() || {};
+    if (fields.id) this.getDDOData().id = fields.id;
+    if (fields.nftAddress) ddo.nftAddress = fields.nftAddress;
+    if (fields.chainId) ddo.chainId = fields.chainId;
+    if (fields.indexedMetadata?.nft?.state)
+      ddo.indexedMetadata.nft.state = fields.indexedMetadata.nft.state;
+    return ddo;
+  }
+
+  async validate(): Promise<[boolean, Record<string, string[]>]> {
+    const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
+    const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
+    const { chainId, nftAddress } = ddoCopy;
+    const extraErrors: Record<string, string[]> = {};
+    ddoCopy['@type'] = 'DDO';
+    ddoCopy['@context'] = {
+      '@vocab': 'http://schema.org/'
+    };
+    if (!chainId) {
+      if (!('chainId' in extraErrors)) extraErrors.chainId = [];
+      extraErrors.chainId.push('chainId is missing or invalid.');
+    }
+
+    try {
+      ethers.utils.getAddress(nftAddress);
+    } catch (err) {
+      if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
+      extraErrors.nftAddress.push('nftAddress is missing or invalid.');
+    }
+
+    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
+      if (!('id' in extraErrors)) extraErrors.id = [];
+      extraErrors.id.push('did is not valid for chain Id and nft address');
+    }
+    const schemaFilePath = this.getSchema(ddoCopy.version);
+    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
+    const dataStream = Readable.from(JSON.stringify(ddoCopy));
+    const output = formats.parsers.import('application/ld+json', dataStream);
+    if (!output) {
+      extraErrors.output = ['Output is null or invalid'];
+      return [false, extraErrors];
+    }
+    const data = await rdf.dataset().import(output);
+    const validator = new SHACLValidator(shapes, { factory: rdf });
+    const report = await validator.validate(data);
+    if (report.conforms) {
+      return [true, {}];
+    }
+    for (const result of report.results) {
+      const key = result.path?.value.replace('http://schema.org/', '');
+      if (key) {
+        if (!(key in extraErrors)) extraErrors[key] = [];
+        extraErrors[key].push(fromRdf(result.message[0]));
+      }
+    }
     extraErrors.fullReport = await report.dataset.serialize({
       format: 'application/ld+json'
     });
