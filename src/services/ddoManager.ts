@@ -413,8 +413,8 @@ export class DeprecatedDDO extends DDOManager {
     return {
       id: data?.id || null,
       version: 'deprecated',
-      chainId: data.credentialSubject?.chainId || null,
-      nftAddress: data.credentialSubject?.nftAddress || null
+      chainId: data?.chainId || null,
+      nftAddress: data?.nftAddress || null
     };
   }
 
