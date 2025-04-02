@@ -102,7 +102,9 @@ export abstract class DDOManager {
    * @param fields - Partial object containing fields to update.
    * @returns The updated DDO data.
    */
-  abstract updateFields(fields: UpdateFields): Record<string, any>;
+  abstract updateFields(
+    fields: UpdateFields | UpdateDeprecatedFields
+  ): Record<string, any>;
 
   /**
    * Method to retrieve the DID.

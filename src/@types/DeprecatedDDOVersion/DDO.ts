@@ -2,7 +2,7 @@
  * DID Descriptor Object.
  * Contains metadata about the asset, and define access in at least one service.
  */
-export interface DeprecatedDDO {
+export interface DeprecatedDDOVersion {
   /**
    * DID, descentralized ID.
    * Computed as sha256(address of NFT contract + chainId)

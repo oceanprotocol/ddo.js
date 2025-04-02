@@ -23,4 +23,4 @@ export * from './DDO5/VerifiableCredential.js';
 export * from './AssetTypes.js';
 export * from './UpdateFields.js';
 
-export * from './DeprecatedDDO/DDO.js';
+export * from './DeprecatedDDOVersion/DDO.js';
