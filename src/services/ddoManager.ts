@@ -150,7 +150,7 @@ export abstract class DDOManager {
       return new V4DDO(ddoData);
     } else if (version.startsWith('5') && id.startsWith('did:ope')) {
       return new V5DDO(ddoData);
-    } else if (version === 'short') {
+    } else if (version === 'deprecated') {
       return new DeprecatedDDO(ddoData);
     }
     throw new Error(`Unsupported DDO version: ${version}`);
