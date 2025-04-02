@@ -221,6 +221,31 @@ export const invalidDDOV4 = {
   nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656'
 };
 
+export const deprecatedDDO = {
+  id: 'did:op:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
+  version: 'deprecated',
+  chainId: 137,
+  nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
+  indexedMetadata: {
+    nft: {
+      state: 5
+    }
+  }
+};
+
+export const invalidDeprecatedDDO = {
+  id: 'did:op:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
+  version: 'deprecated',
+  chainId: 137,
+  nftAddress: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
+  indexedMetadata: {
+    nft: {
+      state: 5
+    }
+  },
+  credentials: ['0xBB1081DbF3227bbB233Db68f7117114baBb43656']
+};
+
 export const invalidDDOV5 = {
   '@context': ['https://www.w3.org/ns/credentials/v2'],
   version: '5.0.0',

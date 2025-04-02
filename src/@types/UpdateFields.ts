@@ -13,3 +13,10 @@ export interface UpdateFields {
   issuer?: string;
   proof?: Proof;
 }
+
+export interface UpdateDeprecatedFields {
+  id?: string;
+  nftAddress?: string;
+  chainId?: number;
+  indexedMetadata?: IndexedMetadata;
+}

@@ -125,3 +125,25 @@ export interface AssetFields {
   datatokens?: AssetDatatoken[];
   indexedMetadata?: IndexedMetadata;
 }
+
+export interface DeprecatedAssetNft {
+  /**
+   * State of the asset reflecting the NFT contract value.
+   * 0	Active.
+   * 1	End-of-life.
+   * 2	Deprecated (by another asset).
+   * 3	Revoked by publisher.
+   * 4	Ordering is temporary disabled.
+   * 5  Unlisted in markets.
+   * @type {number}
+   */
+  state: 0 | 1 | 2 | 3 | 4 | 5;
+}
+
+export interface DeprecatedIndexedMetadata {
+  nft: DeprecatedAssetNft;
+}
+
+export interface DeprecatedAssetFields {
+  indexedMetadata?: DeprecatedIndexedMetadata;
+}
