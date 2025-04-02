@@ -401,7 +401,7 @@ export class DeprecatedDDO extends DDOManager {
 
   makeDid(nftAddress: string, chainId: string): string {
     return (
-      'did:ope:' +
+      'did:op:' +
       createHash('sha256')
         .update(ethers.utils.getAddress(nftAddress) + chainId)
         .digest('hex')

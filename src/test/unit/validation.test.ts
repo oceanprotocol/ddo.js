@@ -34,7 +34,9 @@ describe('DDOManager Validation Tests', () => {
     const validationResult = await validateDDO(invalidCopy);
     expect(validationResult[0]).to.eql(false);
     console.log('validation fails: ', JSON.stringify(validationResult[1]));
-    // expect(validationResult[1].metadata).to.include('Less than 1 values');
+    expect(JSON.stringify(validationResult[1].general)).to.include(
+      '["Validation failed: Error: Expected entity but got eof on line 35."]'
+    );
   });
 
   it('should validate a valid V5 DDO successfully (Verifiable Credential)', async () => {
