@@ -118,6 +118,9 @@ describe('DDOManager', () => {
       const ddoFields = ddoInstance.getDDOFields();
       expect(ddoFields).to.eql({
         id: deprecatedDDO.id,
+        services: null,
+        metadata: null,
+        credentials: null,
         version: deprecatedDDO.version,
         chainId: deprecatedDDO.chainId,
         nftAddress: deprecatedDDO.nftAddress
@@ -126,8 +129,25 @@ describe('DDOManager', () => {
 
     it('should return valid asset fields for Deprecated DDO', () => {
       const assetFields = ddoInstance.getAssetFields();
+      const expectedIndexedMetadata = {
+        ...deprecatedDDO.indexedMetadata,
+        event: null,
+        purgatory: null,
+        stats: null,
+        nft: {
+          state: assetFields.indexedMetadata.nft.state,
+          name: null,
+          symbol: null,
+          address: null,
+          created: null,
+          tokenURI: null,
+          owner: null
+        }
+      };
+
       expect(assetFields).to.eql({
-        indexedMetadata: deprecatedDDO.indexedMetadata
+        indexedMetadata: expectedIndexedMetadata,
+        datatokens: null
       });
     });
 
