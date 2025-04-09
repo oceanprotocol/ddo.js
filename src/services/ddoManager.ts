@@ -278,7 +278,7 @@ export class V5DDO extends DDOManager {
     const data = this.getDDOData();
     return {
       id: data?.id || null,
-      version: data.credentialSubject?.version || null,
+      version: data?.version || null,
       metadata: data.credentialSubject?.metadata || null,
       services: data.credentialSubject?.services || null,
       chainId: data.credentialSubject?.chainId || null,

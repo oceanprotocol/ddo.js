@@ -24,6 +24,7 @@ describe('DDOManager', () => {
       const ddoFields = ddoInstance.getDDOFields();
       expect(ddoFields).to.eql({
         id: DDOExampleV4.id,
+        version: DDOExampleV4.version,
         metadata: DDOExampleV4.metadata,
         services: DDOExampleV4.services,
         chainId: DDOExampleV4.chainId,
@@ -66,6 +67,7 @@ describe('DDOManager', () => {
       const ddoFields = ddoInstance.getDDOFields();
       expect(ddoFields).to.eql({
         id: DDOExampleV5.credentialSubject.id,
+        version: DDOExampleV5.version,
         metadata: DDOExampleV5.credentialSubject.metadata,
         services: DDOExampleV5.credentialSubject.services,
         credentials: DDOExampleV5.credentialSubject.credentials,
