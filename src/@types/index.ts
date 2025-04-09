@@ -1,3 +1,5 @@
+import { DeprecatedDDO, V4DDO, V5DDO } from '../services/ddoManager.js';
+
 export * from './DDO4/Asset.js';
 export * from './DDO4/ConsumerParameter.js';
 export * from './DDO4/Credentials.js';
@@ -23,4 +25,4 @@ export * from './DDO5/VerifiableCredential.js';
 export * from './AssetTypes.js';
 export * from './UpdateFields.js';
 
-export * from './DeprecatedDDOVersion/DDO.js';
+export type VersionedDDO = V4DDO | V5DDO | DeprecatedDDO;
