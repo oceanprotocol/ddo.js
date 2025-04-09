@@ -8,16 +8,15 @@ import { fromRdf } from 'rdf-literal';
 import SHACLValidator from 'rdf-validate-shacl';
 import { Readable } from 'stream';
 import { fileURLToPath } from 'url';
-import { AssetFields, DeprecatedAssetFields } from '../@types/AssetTypes.js';
+import { AssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
 import {
   CredentialSubject,
   DDOFields,
-  DeprecatedDDOFields,
   Proof,
   UpdateFields,
-  UpdateDeprecatedFields
+  VersionedDDO
 } from '../@types/index.js';
 import { existsSync } from 'fs';
 
@@ -63,7 +62,7 @@ export abstract class DDOManager {
    *
    * @returns The DDO fields as `DDOFields` or `CredentialSubject`.
    */
-  abstract getDDOFields(): DDOFields | CredentialSubject | DeprecatedDDOFields;
+  abstract getDDOFields(): DDOFields | CredentialSubject;
 
   /**
    * Abstract method to retrieve asset fields.
@@ -76,7 +75,7 @@ export abstract class DDOManager {
    *
    * @returns The asset fields as `AssetFields`.
    */
-  abstract getAssetFields(): AssetFields | DeprecatedAssetFields;
+  abstract getAssetFields(): AssetFields;
 
   /**
    * Retrieves the DDO data.
@@ -102,9 +101,7 @@ export abstract class DDOManager {
    * @param fields - Partial object containing fields to update.
    * @returns The updated DDO data.
    */
-  abstract updateFields(
-    fields: UpdateFields | UpdateDeprecatedFields
-  ): Record<string, any>;
+  abstract updateFields(fields: UpdateFields): Record<string, any>;
 
   /**
    * Method to retrieve the DID.
@@ -139,12 +136,10 @@ export abstract class DDOManager {
   /**
    * Factory method to get a DDO class instance based on version.
    * @param ddoData - The DDO data object.
-   * @returns An instance of `V4DDO` or `V5DDO`.
+   * @returns An instance of `V4DDO` or `V5DDO` or `DeprecatedDDO`.
    * @throws An error if the version is not supported.
    */
-  public static getDDOClass(
-    ddoData: Record<string, any>
-  ): V4DDO | V5DDO | DeprecatedDDO {
+  public static getDDOClass(ddoData: Record<string, any>): VersionedDDO {
     const { version, id } = ddoData;
     if (version.startsWith('4') && id.startsWith('did:op')) {
       return new V4DDO(ddoData);
@@ -167,6 +162,7 @@ export class V4DDO extends DDOManager {
     const data = this.getDDOData();
     return {
       id: data.id || null,
+      version: data.version || null,
       metadata: data.metadata || null,
       services: data.services || null,
       chainId: data.chainId || null,
@@ -282,6 +278,7 @@ export class V5DDO extends DDOManager {
     const data = this.getDDOData();
     return {
       id: data?.id || null,
+      version: data.credentialSubject?.version || null,
       metadata: data.credentialSubject?.metadata || null,
       services: data.credentialSubject?.services || null,
       chainId: data.credentialSubject?.chainId || null,
@@ -408,26 +405,45 @@ export class DeprecatedDDO extends DDOManager {
     );
   }
 
-  getDDOFields(): DeprecatedDDOFields {
+  getDDOFields(): DDOFields {
     const data = this.getDDOData();
     return {
       id: data?.id || null,
       version: 'deprecated',
       chainId: data?.chainId || null,
-      nftAddress: data?.nftAddress || null
+      nftAddress: data?.nftAddress || null,
+      metadata: null,
+      services: null,
+      credentials: null
     };
   }
 
-  getAssetFields(): DeprecatedAssetFields {
+  getAssetFields(): AssetFields {
+    const { indexedMetadata } = this.getDDOData();
+    indexedMetadata.event = null;
+    indexedMetadata.purgatory = null;
+    indexedMetadata.stats = null;
+    indexedMetadata.nft = {
+      state: this.getDDOData().indexedMetadata.nft.state,
+      address: null,
+      name: null,
+      symbol: null,
+      owner: null,
+      created: null,
+      tokenURI: null
+    };
+
     return {
-      indexedMetadata: this.getDDOData().indexedMetadata
+      indexedMetadata,
+      datatokens: null
     };
   }
 
-  updateFields(fields: UpdateDeprecatedFields): Record<string, any> {
+  updateFields(fields: UpdateFields): Record<string, any> {
     const ddo = this.getDDOData() || {};
-    if (fields.id) this.getDDOData().id = fields.id;
+    if (fields.id) ddo.id = fields.id;
     if (fields.nftAddress) ddo.nftAddress = fields.nftAddress;
+    if (fields.services) ddo.nftAddress = fields.nftAddress;
     if (fields.chainId) ddo.chainId = fields.chainId;
     if (fields.indexedMetadata?.nft?.state)
       ddo.indexedMetadata.nft.state = fields.indexedMetadata.nft.state;

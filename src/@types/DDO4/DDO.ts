@@ -61,6 +61,7 @@ export interface DDO {
 
 export interface DDOFields {
   id: string;
+  version: string;
   nftAddress: string;
   chainId: number;
   metadata: Metadata;
