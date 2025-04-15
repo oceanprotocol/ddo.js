@@ -443,7 +443,6 @@ export class DeprecatedDDO extends DDOManager {
     const ddo = this.getDDOData() || {};
     if (fields.id) ddo.id = fields.id;
     if (fields.nftAddress) ddo.nftAddress = fields.nftAddress;
-    if (fields.services) ddo.nftAddress = fields.nftAddress;
     if (fields.chainId) ddo.chainId = fields.chainId;
     if (fields.indexedMetadata?.nft?.state)
       ddo.indexedMetadata.nft.state = fields.indexedMetadata.nft.state;
