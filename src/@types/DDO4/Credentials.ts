@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum CREDENTIALS_TYPES {
   ADDRESS = 'address',
   ACCESS_LIST = 'accessList',
