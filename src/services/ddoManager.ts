@@ -1,11 +1,8 @@
-import formats from '@rdfjs/formats-common';
-import rdf from '@zazuko/env-node';
 import { createHash } from 'crypto';
 import { ethers } from 'ethers';
 import { dirname, resolve } from 'path';
 import { fromRdf } from 'rdf-literal';
 // @ts-ignore
-import SHACLValidator from 'rdf-validate-shacl';
 import { Readable } from 'stream';
 import { fileURLToPath } from 'url';
 import { AssetFields } from '../@types/AssetTypes.js';
@@ -19,6 +16,7 @@ import {
   VersionedDDO
 } from '../@types/index.js';
 import { existsSync } from 'fs';
+import { getRdfjsLibraries } from '../utils/importUtils.js';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = [
@@ -207,6 +205,7 @@ export class V4DDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
+    const { rdf, formats, SHACLValidator } = await getRdfjsLibraries();
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
@@ -325,6 +324,7 @@ export class V5DDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
+    const { rdf, formats, SHACLValidator } = await getRdfjsLibraries();
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy.credentialSubject;
@@ -450,6 +450,7 @@ export class DeprecatedDDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
+    const { rdf, formats, SHACLValidator } = await getRdfjsLibraries();
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
