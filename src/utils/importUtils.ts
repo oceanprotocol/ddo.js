@@ -6,7 +6,6 @@ export const getRdfjsLibraries = async () => {
   if (!formats) {
     const formatsModule = await import('@rdfjs/formats-common');
     formats = formatsModule.default;
-    return formats;
   }
 
   if (!rdf) {
