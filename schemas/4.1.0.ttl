@@ -336,8 +336,11 @@ schema:ComputeShape
         sh:pattern "^(.*)$" ;
     ] ;
     sh:property [
-        sh:path schema:publisherTrustedAlgorithms;
-        sh:node schema:TrustedAlgoShape ;
+        sh:path schema:publisherTrustedAlgorithms ;
+        sh:or (
+        [ sh:node schema:TrustedAlgoShape ]
+        [ sh:datatype xsd:string ; sh:pattern "^\\*$" ]
+        )
     ] ; .
 
 

@@ -8,6 +8,7 @@ import {
 } from '../../services/ddoManager.js';
 import {
   DDOExampleV4,
+  DDOExampleV4Compute,
   DDOExampleV5,
   deprecatedDDO,
   invalidDDOV4,
@@ -27,6 +28,12 @@ describe('DDOManager Validation Tests', () => {
     const validationResult = await validateDDO(invalidCopy);
     expect(validationResult[0]).to.eql(false);
     expect(validationResult[1].metadata).to.include('Less than 1 values');
+  });
+
+  it('should validate a valid compute V4 DDO successfully', async () => {
+    const validationResult = await validateDDO(DDOExampleV4Compute);
+    expect(validationResult[0]).to.eql(true);
+    expect(validationResult[1]).to.eql({});
   });
 
   it('should fail Deprecated DDO validation due to extra fields', async () => {
