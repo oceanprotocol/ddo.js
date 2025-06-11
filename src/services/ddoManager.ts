@@ -312,7 +312,8 @@ export class V5DDO extends DDOManager {
     if (fields.indexedMetadata?.event)
       this.getDDOData().indexedMetadata.event = fields.indexedMetadata.event;
     if (fields.indexedMetadata?.purgatory)
-      this.getDDOData().indexedMetadata.purgatory = fields.indexedMetadata.purgatory;
+      this.getDDOData().indexedMetadata.purgatory = 
+        fields.indexedMetadata.purgatory;
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.indexedMetadata?.stats)
