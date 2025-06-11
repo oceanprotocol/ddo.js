@@ -288,7 +288,7 @@ export class V5DDO extends DDOManager {
 
   getAssetFields(): AssetFields {
     return {
-      indexedMetadata: this.getDDOData().credentialSubject?.indexedMetadata,
+      indexedMetadata: this.getDDOData()?.indexedMetadata,
       datatokens: this.getDDOData().credentialSubject?.datatokens
     };
   }
@@ -317,7 +317,7 @@ export class V5DDO extends DDOManager {
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.indexedMetadata?.stats)
-      credentialSubject.stats = fields.indexedMetadata.stats;
+      this.getDDOData().indexedMetadata.stats = fields.indexedMetadata.stats;
     if (fields.issuer) this.getDDOData().issuer = fields.issuer;
     if (fields.proof) this.getDDOData().proof = fields.proof;
     this.getDDOData().credentialSubject = credentialSubject;
