@@ -1,3 +1,4 @@
+import { IndexedMetadata } from './../@types/AssetTypes';
 import { createHash } from 'crypto';
 import { ethers } from 'ethers';
 import { dirname, resolve } from 'path';
@@ -308,11 +309,11 @@ export class V5DDO extends DDOManager {
     if (fields.chainId) credentialSubject.chainId = fields.chainId;
     if (fields.datatokens) credentialSubject.datatokens = fields.datatokens;
     if (fields.indexedMetadata?.nft)
-      credentialSubject.nft = fields.indexedMetadata.nft;
+      this.getDDOData().IndexedMetadata.nft = fields.indexedMetadata.nft;
     if (fields.indexedMetadata?.event)
-      credentialSubject.event = fields.indexedMetadata.event;
+      this.getDDOData().IndexedMetadata.event = fields.indexedMetadata.event;
     if (fields.indexedMetadata?.purgatory)
-      credentialSubject.purgatory = fields.indexedMetadata.purgatory;
+      this.getDDOData().IndexedMetadata.purgatory = fields.indexedMetadata.purgatory;
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.indexedMetadata?.stats)
