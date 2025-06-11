@@ -288,7 +288,7 @@ export class V5DDO extends DDOManager {
 
   getAssetFields(): AssetFields {
     return {
-      indexedMetadata: this.getDDOData().credentialSubject?.indexedMetadata,
+      indexedMetadata: this.getDDOData()?.indexedMetadata,
       datatokens: this.getDDOData().credentialSubject?.datatokens
     };
   }
@@ -308,15 +308,16 @@ export class V5DDO extends DDOManager {
     if (fields.chainId) credentialSubject.chainId = fields.chainId;
     if (fields.datatokens) credentialSubject.datatokens = fields.datatokens;
     if (fields.indexedMetadata?.nft)
-      credentialSubject.nft = fields.indexedMetadata.nft;
+      this.getDDOData().indexedMetadata.nft = fields.indexedMetadata.nft;
     if (fields.indexedMetadata?.event)
-      credentialSubject.event = fields.indexedMetadata.event;
+      this.getDDOData().indexedMetadata.event = fields.indexedMetadata.event;
     if (fields.indexedMetadata?.purgatory)
-      credentialSubject.purgatory = fields.indexedMetadata.purgatory;
+      this.getDDOData().indexedMetadata.purgatory =
+        fields.indexedMetadata.purgatory;
     if (fields.services)
       credentialSubject.services = fields.services as ServiceV5[];
     if (fields.indexedMetadata?.stats)
-      credentialSubject.stats = fields.indexedMetadata.stats;
+      this.getDDOData().indexedMetadata.stats = fields.indexedMetadata.stats;
     if (fields.issuer) this.getDDOData().issuer = fields.issuer;
     if (fields.proof) this.getDDOData().proof = fields.proof;
     this.getDDOData().credentialSubject = credentialSubject;

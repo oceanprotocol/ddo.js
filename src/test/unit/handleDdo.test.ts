@@ -79,7 +79,7 @@ describe('DDOManager', () => {
     it('should return valid asset fields for V5 DDO', () => {
       const assetFields = ddoInstance.getAssetFields();
       expect(assetFields).to.eql({
-        indexedMetadata: DDOExampleV5.credentialSubject.indexedMetadata,
+        indexedMetadata: DDOExampleV5.indexedMetadata,
         datatokens: DDOExampleV5.credentialSubject.datatokens
       });
     });
@@ -91,6 +91,28 @@ describe('DDOManager', () => {
       expect(ddo.credentialSubject.nftAddress).to.eql(
         '0x282d8efce846a88b159800bd4130ad77443fa1a1'
       );
+    });
+
+    it('should update some indexedMetadata fields for V5 DDO', () => {
+      const ddo = ddoInstance.updateFields({
+        indexedMetadata: {
+          nft: {
+            address: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
+            name: 'Ocean Data NFT',
+            symbol: 'OCEAN-NFT',
+            state: 5,
+            tokenURI:
+              'data:application/json;base64,eyJuYW1lIjoiT2NlYW4gRGF0YSBORlQiLCJzeW1ib2wiOiJPQ0VBTi1ORlQiLCJkZXNjcmlwdGlvbiI6IlRoaXMgTkZUIHJlcHJlc2VudHMgYW4gYXNzZXQgaW4gdGhlIE9jZWFuIFByb3RvY29sIHY0IGVjb3N5c3RlbS5cblxuVmlldyBvbiBPY2VhbiBNYXJrZXQ6IGh0dHBzOi8vbWFya2V0Lm9jZWFucHJvdG9jb2wuY29tL2Fzc2V0L2RpZDpvcDpmYTBlOGZhOTU1MGU4ZWIxMzM5MmQ2ZWViOWJhOWY4MTExODAxYjMzMmM4ZDIzNDViMzUwYjNiYzY2YjM3OWQ1IiwiZXh0ZXJuYWxfdXJsIjoiaHR0cHM6Ly9tYXJrZXQub2NlYW5wcm90b2NvbC5jb20vYXNzZXQvZGlkOm9wOmZhMGU4ZmE5NTUwZThlYjEzMzkyZDZlZWI5YmE5ZjgxMTE4MDFiMzMyYzhkMjM0NWIzNTBiM2JjNjZiMzc5ZDUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiMTQxNDE0IiwiaW1hZ2VfZGF0YSI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0Nzdmcgdmlld0JveD0nMCAwIDk5IDk5JyBmaWxsPSd1bmRlZmluZWQnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyclM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5Mjc3JyBkPSdNMCw5OUwwLDIzQzEzLDIwIDI3LDE4IDM3LDE4QzQ2LDE3IDUyLDE4IDYyLDIwQzcxLDIxIDg1LDI0IDk5LDI3TDk5LDk5WicvJTNFJTNDcGF0aCBmaWxsPSclMjNmZjQwOTJiYicgZD0nTTAsOTlMMCw1MkMxMSw0OCAyMyw0NCAzMyw0NEM0Miw0MyA1MCw0NSA2MSw0OEM3MSw1MCA4NSw1MiA5OSw1NUw5OSw5OVonJTNFJTNDL3BhdGglM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5MmZmJyBkPSdNMCw5OUwwLDcyQzgsNzMgMTcsNzUgMjksNzZDNDAsNzYgNTMsNzYgNjYsNzdDNzgsNzcgODgsNzcgOTksNzhMOTksOTlaJyUzRSUzQy9wYXRoJTNFJTNDL3N2ZyUzRSJ9',
+            owner: '0x0DB823218e337a6817e6D7740eb17635DEAdafAF',
+            created: '2022-12-30T08:40:43'
+          },
+          purgatory: {
+            state: true
+          }
+        }
+      });
+      expect(ddo.indexedMetadata.nft.state).to.eql(5);
+      expect(ddo.indexedMetadata.purgatory.state).to.eql(true);
     });
 
     it('should update Proof field for V5 DDO and the get it', () => {
