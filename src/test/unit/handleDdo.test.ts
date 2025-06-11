@@ -108,15 +108,11 @@ describe('DDOManager', () => {
           },
           purgatory: {
             state: true
-          },
+          }
         }
       });
-      expect(ddo.indexedMetadata.nft.state).to.eql(
-        5
-      );
-       expect(ddo.indexedMetadata.purgatory.state).to.eql(
-        true
-      );
+      expect(ddo.indexedMetadata.nft.state).to.eql(5);
+       expect(ddo.indexedMetadata.purgatory.state).to.eql(true);
     });
 
     it('should update Proof field for V5 DDO and the get it', () => {
