@@ -416,7 +416,7 @@ schema:TrustedAlgoShape
         sh:path schema:filesChecksum ;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
-        sh:minCount 1;
+        sh:minCount 0;
         sh:maxCount 1;
         sh:maxLength 1024;
     ] ;
