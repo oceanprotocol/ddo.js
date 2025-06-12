@@ -9,6 +9,12 @@ export interface PublisherTrustedAlgorithm {
   did: string;
 
   /**
+   * The serviceId of the algorithm which is trusted by the publisher.
+   * @type {string}
+   */
+  serviceId: string;
+
+  /**
    * Hash of algorithm’s files section.
    * @type {string}
    */

@@ -8,7 +8,9 @@ import {
 } from '../../services/ddoManager.js';
 import {
   DDOExampleV4,
+  DDOExampleV4Algorithm,
   DDOExampleV4Compute,
+  DDOExampleV4Dataset,
   DDOExampleV5,
   deprecatedDDO,
   invalidDDOV4,
@@ -32,6 +34,18 @@ describe('DDOManager Validation Tests', () => {
 
   it('should validate a valid compute V4 DDO successfully', async () => {
     const validationResult = await validateDDO(DDOExampleV4Compute);
+    expect(validationResult[0]).to.eql(true);
+    expect(validationResult[1]).to.eql({});
+  });
+
+  it('should validate a valid algorithm V4 DDO successfully', async () => {
+    const validationResult = await validateDDO(DDOExampleV4Algorithm);
+    expect(validationResult[0]).to.eql(true);
+    expect(validationResult[1]).to.eql({});
+  });
+
+  it('should validate a valid algorithm V4 DDO successfully', async () => {
+    const validationResult = await validateDDO(DDOExampleV4Dataset);
     expect(validationResult[0]).to.eql(true);
     expect(validationResult[1]).to.eql({});
   });
