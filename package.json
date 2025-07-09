@@ -17,8 +17,8 @@
   "scripts": {
     "lint": "eslint --ignore-path .gitignore --ext .ts,.tsx .",
     "lint:fix": "eslint --ignore-path .gitignore --ext .ts,.tsx . --fix",
-    "buildold": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
-    "build": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json",
+    "build": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
+    "buildesm": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json",
     "build:tsc": "tsc --sourceMap",
     "clean": "rm -rf ./dist/ ./doc/ ./.nyc_output",
     "mocha": "mocha --node-env=test --config .mocharc.json",
