@@ -4,14 +4,13 @@
   "repository": "https://github.com/oceanprotocol/ddo.js.git",
   "author": "Ocean Protocol <devops@oceanprotocol.com>",
   "license": "Apache-2.0",
-  "main": "./dist/lib.cjs",
-  "umd:main": "dist/lib.umd.js",
-  "module": "./dist/lib.module.mjs",
+  "main": "./dist/ddo.module.js",
+  "umd:main": "dist/ddo.umd.js",
+  "module": "./dist/ddo.js",
   "type": "module",
   "export": {
-    "require": "./dist/lib.cjs",
-    "import": "./dist/lib.module.mjs",
-    "default": "./dist/lib.modern.mjs"
+    "require": "./dist/ddo.cjs",
+    "import": "./dist/ddo.module.js"
   },
   "types": "./dist/types/index.d.ts",
   "source": "./src/index.ts",
@@ -19,6 +18,7 @@
     "lint": "eslint --ignore-path .gitignore --ext .ts,.tsx .",
     "lint:fix": "eslint --ignore-path .gitignore --ext .ts,.tsx . --fix",
     "build": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
+    "buildesm": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json",
     "build:tsc": "tsc --sourceMap",
     "clean": "rm -rf ./dist/ ./doc/ ./.nyc_output",
     "mocha": "mocha --node-env=test --config .mocharc.json",
