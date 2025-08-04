@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { ethers } from 'ethers';
+import { getAddress } from 'ethers';
 import { dirname, resolve } from 'path';
 import { fromRdf } from 'rdf-literal';
 // @ts-ignore
@@ -180,7 +180,7 @@ export class V4DDO extends DDOManager {
     return (
       'did:op:' +
       createHash('sha256')
-        .update(ethers.utils.getAddress(nftAddress) + chainId)
+        .update(getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -220,7 +220,7 @@ export class V4DDO extends DDOManager {
     }
 
     try {
-      ethers.utils.getAddress(nftAddress);
+      getAddress(nftAddress);
     } catch (err) {
       if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
       extraErrors.nftAddress.push('nftAddress is missing or invalid.');
@@ -268,7 +268,7 @@ export class V5DDO extends DDOManager {
     return (
       'did:ope:' +
       createHash('sha256')
-        .update(ethers.utils.getAddress(nftAddress) + chainId)
+        .update(getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -339,7 +339,7 @@ export class V5DDO extends DDOManager {
     }
 
     try {
-      ethers.utils.getAddress(nftAddress);
+      getAddress(nftAddress);
     } catch (err) {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
@@ -401,7 +401,7 @@ export class DeprecatedDDO extends DDOManager {
     return (
       'did:op:' +
       createHash('sha256')
-        .update(ethers.utils.getAddress(nftAddress) + chainId)
+        .update(getAddress(nftAddress) + chainId)
         .digest('hex')
     );
   }
@@ -466,7 +466,7 @@ export class DeprecatedDDO extends DDOManager {
     }
 
     try {
-      ethers.utils.getAddress(nftAddress);
+      getAddress(nftAddress);
     } catch (err) {
       if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
       extraErrors.nftAddress.push('nftAddress is missing or invalid.');
