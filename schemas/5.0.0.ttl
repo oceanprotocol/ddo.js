@@ -64,7 +64,6 @@ schema:VerifiableCredentialShape
 
 # Shape for CredentialSubject
 schema:CredentialSubjectShape
-    sh:targetClass schema:CredentialSubject ;
     sh:property [
         sh:path schema:metadata ;
         sh:node schema:MetadataShape ;
@@ -260,14 +259,82 @@ schema:CredentialRuleShape
     sh:or (
         schema:CredentialAddressBasedShape
         schema:CredentialPolicyBasedShape
+        schema:SSIPolicyBasedShape
     ) .
+
+schema:SSIPolicyBasedShape
+    sh:property [
+        sh:path schema:type ;
+        sh:hasValue "SSIpolicy" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:values ;
+        sh:node schema:SSIValuesShape ;
+        sh:minCount 1 ;
+        sh:maxCount 64 ;
+    ] .
+
+schema:SSIValuesShape
+    sh:property [
+        sh:path schema:request_credentials ;
+        sh:node schema:SSIRequestCredentialShape ;
+        sh:minCount 1 ;
+        sh:maxCount 32 ;
+    ] ;
+    sh:property [
+        sh:path schema:vc_policies ;
+        sh:datatype xsd:string ;
+        sh:maxCount 64 ;
+    ] ;
+    sh:property [
+        sh:path schema:vp_policies ;
+        sh:node schema:SSIVpPolicyItemShape ;
+        sh:maxCount 64 ;
+    ] .
+
+schema:SSIRequestCredentialShape
+    sh:property [
+        sh:path schema:format ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:type ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:policies ;
+        sh:or (
+            [ sh:datatype xsd:string ]
+            schema:PolicyDetailShape
+        ) ;
+        sh:maxCount 32 ;
+    ] .
+
+schema:SSIVpPolicyItemShape
+    sh:property [
+        sh:path schema:policy ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:args ;
+        sh:or (
+            [ sh:datatype xsd:string ]
+            schema:PolicyArgsShape
+        ) ;
+        sh:maxCount 1 ;
+    ] .
 
 schema:CredentialAddressBasedShape
     sh:property [ 
         sh:path schema:type ; 
         sh:hasValue "address" ;
         sh:minCount 1 ; 
-        sh:maxCount 1 
+        sh:maxCount 1 ;
     ] ;
     sh:property [
         sh:path schema:values ;
@@ -284,7 +351,7 @@ schema:AddressWrapperShape
         sh:path schema:address ; 
         sh:datatype xsd:string ; 
         sh:minCount 1 ; 
-        sh:maxCount 1 
+        sh:maxCount 1 ;
     ] .
 
 # verifiableCredential-based
@@ -293,12 +360,13 @@ schema:CredentialPolicyBasedShape
         sh:path schema:type ; 
         sh:hasValue "verifiableCredential" ; 
         sh:minCount 1 ; 
-        sh:maxCount 1 
+        sh:maxCount 1 ;
     ] ;
     sh:property [
         sh:path schema:requestCredentials ;
         sh:node schema:RequestCredentialShape ;
-        sh:minCount 1 ; sh:maxCount 32 ;
+        sh:minCount 1 ; 
+        sh:maxCount 32 ;
     ] .
 
 schema:RequestCredentialShape
@@ -311,7 +379,7 @@ schema:DetailedCredentialShape
     sh:property [ 
         sh:path schema:credential ; 
         sh:datatype xsd:string ; 
-        sh:maxCount 1 
+        sh:maxCount 1 ;
     ] ;
     sh:property [
         sh:path schema:policies ;
@@ -330,12 +398,15 @@ schema:PolicyDetailShape
         sh:path schema:policy ; 
         sh:datatype xsd:string ; 
         sh:minCount 1 ; 
-        sh:maxCount 1 
+        sh:maxCount 1 ;
     ] ;
-    sh:property [ 
-        sh:path schema:args ; 
-        sh:node schema:PolicyArgsShape ; 
-        sh:maxCount 1 
+    sh:property [
+        sh:path schema:args ;
+        sh:or (
+            [ sh:datatype xsd:string ]
+            schema:PolicyArgsShape
+        ) ;
+        sh:maxCount 1
     ] .
 
 schema:PolicyArgsShape

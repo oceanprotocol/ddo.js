@@ -224,26 +224,56 @@ export const DDOExampleV5 = {
           allowNetworkAccess: true
         },
         state: 0,
-        credentials: []
+        credentials: {
+          allow: [
+            {
+              type: 'address',
+              values: [
+                {
+                  address: '*'
+                }
+              ]
+            }
+          ],
+          deny: [],
+          match_deny: 'any'
+        }
       }
     ],
     credentials: {
       allow: [
         {
-          type: 'verifiableCredential',
-          requestCredentials: [
-            { type: 'VerifiableId', format: 'jwt_vc_json' },
-            { type: 'ProofOfResidence', format: 'jwt_vc_json' },
+          type: 'SSIpolicy',
+          values: [
             {
-              type: 'OpenBadgeCredential',
-              format: 'jwt_vc_json',
-              policies: ['signature']
+              request_credentials: [
+                {
+                  format: 'jwt_vc_json',
+                  policies: [],
+                  type: 'UniversityDegree'
+                }
+              ],
+              vc_policies: ['signature', 'not-before', 'revoked-status-list'],
+              vp_policies: [
+                {
+                  policy: 'holder-binding'
+                },
+                {
+                  policy: 'presentation-definition'
+                },
+                {
+                  policy: 'minimum-credentials',
+                  args: '1'
+                },
+                {
+                  policy: 'maximum-credentials',
+                  args: '2'
+                }
+              ]
             }
           ]
         }
-      ],
-      deny: [],
-      match_deny: 'any'
+      ]
     },
     datatokens: [
       {
@@ -270,7 +300,8 @@ export const DDOExampleV5 = {
       name: 'Ocean Data NFT',
       symbol: 'OCEAN-NFT',
       state: 0,
-      tokenURI: '',
+      tokenURI:
+        'data:application/json;base64,eyJuYW1lIjoiT2NlYW4gRGF0YSBORlQiLCJzeW1ib2wiOiJPQ0VBTi1ORlQiLCJkZXNjcmlwdGlvbiI6IlRoaXMgTkZUIHJlcHJlc2VudHMgYW4gYXNzZXQgaW4gdGhlIE9jZWFuIFByb3RvY29sIHY0IGVjb3N5c3RlbS5cblxuVmlldyBvbiBPY2VhbiBNYXJrZXQ6IGh0dHBzOi8vbWFya2V0Lm9jZWFucHJvdG9jb2wuY29tL2Fzc2V0L2RpZDpvcDpmYTBlOGZhOTU1MGU4ZWIxMzM5MmQ2ZWViOWJhOWY4MTExODAxYjMzMmM4ZDIzNDViMzUwYjNiYzY2YjM3OWQ1IiwiZXh0ZXJuYWxfdXJsIjoiaHR0cHM6Ly9tYXJrZXQub2NlYW5wcm90b2NvbC5jb20vYXNzZXQvZGlkOm9wOmZhMGU4ZmE5NTUwZThlYjEzMzkyZDZlZWI5YmE5ZjgxMTE4MDFiMzMyYzhkMjM0NWIzNTBiM2JjNjZiMzc5ZDUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiMTQxNDE0IiwiaW1hZ2VfZGF0YSI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0Nzdmcgdmlld0JveD0nMCAwIDk5IDk5JyBmaWxsPSd1bmRlZmluZWQnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyclM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5Mjc3JyBkPSdNMCw5OUwwLDIzQzEzLDIwIDI3LDE4IDM3LDE4QzQ2LDE3IDUyLDE4IDYyLDIwQzcxLDIxIDg1LDI0IDk5LDI3TDk5LDk5WicvJTNFJTNDcGF0aCBmaWxsPSclMjNmZjQwOTJiYicgZD0nTTAsOTlMMCw1MkMxMSw0OCAyMyw0NCAzMyw0NEM0Miw0MyA1MCw0NSA2MSw0OEM3MSw1MCA4NSw1MiA5OSw1NUw5OSw5OVonJTNFJTNDL3BhdGglM0UlM0NwYXRoIGZpbGw9JyUyM2ZmNDA5MmZmJyBkPSdNMCw5OUwwLDcyQzgsNzMgMTcsNzUgMjksNzZDNDAsNzYgNTMsNzYgNjYsNzdDNzgsNzcgODgsNzcgOTksNzhMOTksOTlaJyUzRSUzQy9wYXRoJTNFJTNDL3N2ZyUzRSJ9',
       owner: '0x0DB823218e337a6817e6D7740eb17635DEAdafAF',
       created: '2022-12-30T08:40:43'
     },
