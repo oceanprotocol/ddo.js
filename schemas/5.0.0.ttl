@@ -47,13 +47,8 @@ schema:VerifiableCredentialShape
         sh:maxCount 64 ;
     ] ;
     sh:property [
-        sh:path schema:proof ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
         sh:path schema:indexedMetadata ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:node schema:IndexedMetadataShape ;
         sh:maxCount 1 ;
     ] ;
     sh:property [
@@ -96,18 +91,131 @@ schema:CredentialSubjectShape
         sh:maxLength 42 ;
     ] ;
     sh:property [
-        sh:path schema:stats ;
-        sh:node schema:StatsShape ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
         sh:path schema:datatokens ;
         sh:node schema:DatatokenShape ;
         sh:maxCount 64 ;
-    ] ;
+    ] .
+
+# Shape for IndexedMetadata
+schema:IndexedMetadataShape
     sh:property [
         sh:path schema:event ;
-        sh:node schema:EventShape ;
+        sh:node schema:IndexedEventShape ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:nft ;
+        sh:node schema:IndexedNftShape ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:purgatory ;
+        sh:node schema:PurgatoryShape ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:stats ;
+        sh:node schema:StatsShape ;
+        sh:maxCount 64 ;
+    ] .
+
+schema:IndexedEventShape
+    sh:property [
+        sh:path schema:txid ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:block ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:from ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:contract ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:datetime ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] .
+
+schema:IndexedNftShape
+    sh:property [
+        sh:path schema:address ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:minLength 42 ; sh:maxLength 42 ;
+    ] ;
+    sh:property [
+        sh:path schema:name ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:symbol ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:state ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:tokenURI ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:owner ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:created ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] .
+
+schema:PurgatoryShape
+    sh:property [
+        sh:path schema:state ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1 ; 
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:reason ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] .
+
+schema:IndexedPriceShape
+    sh:property [
+        sh:path schema:value ;
+        sh:datatype xsd:decimal ;
+        sh:minCount 1 ; 
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:tokenAddress ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; 
+        sh:maxCount 1 ;
+        sh:minLength 42 ; 
+        sh:maxLength 42 ;
+    ] ;
+    sh:property [
+        sh:path schema:tokenSymbol ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; 
         sh:maxCount 1 ;
     ] .
 
@@ -150,7 +258,7 @@ schema:MetadataShape
     ] ;
     sh:property [
         sh:path schema:links ; 
-        sh:nodeKind sh:BlankNodeOrIRI ; 
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
     ] ;
     sh:property [
@@ -611,12 +719,12 @@ schema:AccessDetailShape
     ] ;
     sh:property [
         sh:path schema:baseToken ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
     ] ;
     sh:property [
         sh:path schema:datatoken ;
-        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
     ] ;
     sh:property [
