@@ -19,9 +19,9 @@ schema:VerifiableCredentialShape
     ] ;
     sh:property [
         sh:path schema:type ;
-        sh:datatype xsd:string ;
+        sh:nodeKind sh:Literal ;
         sh:minCount 1 ;
-        sh:maxCount 8 ;
+        sh:maxCount 1 ;
     ] ;
     sh:property [
         sh:path schema:credentialSubject ;
@@ -45,20 +45,11 @@ schema:VerifiableCredentialShape
         sh:path schema:additionalDdos ;
         sh:node schema:AdditionalDdosShape ;
         sh:maxCount 64 ;
-    ] ;
-    sh:property [
-        sh:path schema:indexedMetadata ;
-        sh:node schema:IndexedMetadataShape ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:accessDetails ;
-        sh:node schema:AccessDetailShape ;
-        sh:maxCount 32 ;
     ] .
 
 # Shape for CredentialSubject
 schema:CredentialSubjectShape
+    sh:targetClass schema:CredentialSubject ;
     sh:property [
         sh:path schema:metadata ;
         sh:node schema:MetadataShape ;
@@ -91,131 +82,8 @@ schema:CredentialSubjectShape
         sh:maxLength 42 ;
     ] ;
     sh:property [
-        sh:path schema:datatokens ;
-        sh:node schema:DatatokenShape ;
-        sh:maxCount 64 ;
-    ] .
-
-# Shape for IndexedMetadata
-schema:IndexedMetadataShape
-    sh:property [
         sh:path schema:event ;
-        sh:node schema:IndexedEventShape ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:nft ;
-        sh:node schema:IndexedNftShape ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:purgatory ;
-        sh:node schema:PurgatoryShape ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:stats ;
-        sh:node schema:StatsShape ;
-        sh:maxCount 64 ;
-    ] .
-
-schema:IndexedEventShape
-    sh:property [
-        sh:path schema:txid ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:block ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:from ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:contract ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:datetime ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] .
-
-schema:IndexedNftShape
-    sh:property [
-        sh:path schema:address ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:minLength 42 ; sh:maxLength 42 ;
-    ] ;
-    sh:property [
-        sh:path schema:name ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:symbol ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:state ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:tokenURI ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:owner ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:created ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] .
-
-schema:PurgatoryShape
-    sh:property [
-        sh:path schema:state ;
-        sh:datatype xsd:boolean ;
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:reason ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] .
-
-schema:IndexedPriceShape
-    sh:property [
-        sh:path schema:value ;
-        sh:datatype xsd:decimal ;
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:tokenAddress ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-        sh:minLength 42 ; 
-        sh:maxLength 42 ;
-    ] ;
-    sh:property [
-        sh:path schema:tokenSymbol ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; 
+        sh:node schema:EventShape ;
         sh:maxCount 1 ;
     ] .
 
@@ -239,36 +107,6 @@ schema:MetadataShape
         sh:path schema:name ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:tags ; 
-        sh:datatype xsd:string ; 
-        sh:maxCount 64 ;
-    ] ;
-    sh:property [
-        sh:path schema:author ; 
-        sh:datatype xsd:string ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:license ; 
-        sh:node schema:LicenseShape ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:links ; 
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:providedBy ; 
-        sh:datatype xsd:string ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:copyrightHolder ; 
-        sh:datatype xsd:string ; 
         sh:maxCount 1 ;
     ] ;
     sh:property [
@@ -318,211 +156,6 @@ schema:ServiceShape
         sh:datatype xsd:integer ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-    ] ;
-    sh:property [ 
-        sh:path schema:files ; 
-        sh:datatype xsd:string ; 
-        sh:maxCount 1 
-    ] ;
-    sh:property [ 
-        sh:path schema:name ; 
-        sh:datatype xsd:string ; 
-        sh:maxCount 1 
-    ] ;
-    sh:property [ 
-        sh:path schema:state ; 
-        sh:datatype xsd:integer ; 
-        sh:maxCount 1 
-    ] ;
-    sh:property [ 
-        sh:path schema:credentials ; 
-        sh:node schema:CredentialsShape ; 
-        sh:maxCount 1 
-    ] .
-
-# Root credentials container
-schema:CredentialsShape
-    sh:property [
-        sh:path schema:match_allow ;
-        sh:in ( "any" "all" ) ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:match_deny ;
-        sh:in ( "any" "all" ) ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:allow ;
-        sh:node schema:CredentialRuleShape ;
-        sh:maxCount 64 ;
-    ] ;
-    sh:property [
-        sh:path schema:deny ;
-        sh:node schema:CredentialRuleShape ;
-        sh:maxCount 64 ;
-    ] .
-
-schema:CredentialRuleShape
-    sh:or (
-        schema:CredentialAddressBasedShape
-        schema:CredentialPolicyBasedShape
-        schema:SSIPolicyBasedShape
-    ) .
-
-schema:SSIPolicyBasedShape
-    sh:property [
-        sh:path schema:type ;
-        sh:hasValue "SSIpolicy" ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:values ;
-        sh:node schema:SSIValuesShape ;
-        sh:minCount 1 ;
-        sh:maxCount 64 ;
-    ] .
-
-schema:SSIValuesShape
-    sh:property [
-        sh:path schema:request_credentials ;
-        sh:node schema:SSIRequestCredentialShape ;
-        sh:minCount 1 ;
-        sh:maxCount 32 ;
-    ] ;
-    sh:property [
-        sh:path schema:vc_policies ;
-        sh:datatype xsd:string ;
-        sh:maxCount 64 ;
-    ] ;
-    sh:property [
-        sh:path schema:vp_policies ;
-        sh:node schema:SSIVpPolicyItemShape ;
-        sh:maxCount 64 ;
-    ] .
-
-schema:SSIRequestCredentialShape
-    sh:property [
-        sh:path schema:format ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:type ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:policies ;
-        sh:or (
-            [ sh:datatype xsd:string ]
-            schema:PolicyDetailShape
-        ) ;
-        sh:maxCount 32 ;
-    ] .
-
-schema:SSIVpPolicyItemShape
-    sh:property [
-        sh:path schema:policy ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:args ;
-        sh:or (
-            [ sh:datatype xsd:string ]
-            schema:PolicyArgsShape
-        ) ;
-        sh:maxCount 1 ;
-    ] .
-
-schema:CredentialAddressBasedShape
-    sh:property [ 
-        sh:path schema:type ; 
-        sh:hasValue "address" ;
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:values ;
-        sh:or (
-            [ sh:datatype xsd:string ]
-            [ sh:node schema:AddressWrapperShape ]
-        ) ;
-        sh:minCount 1 ; 
-        sh:maxCount 256 ;
-    ] .
-
-schema:AddressWrapperShape
-    sh:property [ 
-        sh:path schema:address ; 
-        sh:datatype xsd:string ; 
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-    ] .
-
-# verifiableCredential-based
-schema:CredentialPolicyBasedShape
-    sh:property [ 
-        sh:path schema:type ; 
-        sh:hasValue "verifiableCredential" ; 
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:requestCredentials ;
-        sh:node schema:RequestCredentialShape ;
-        sh:minCount 1 ; 
-        sh:maxCount 32 ;
-    ] .
-
-schema:RequestCredentialShape
-    sh:or (
-        [ sh:datatype xsd:string ]
-        schema:DetailedCredentialShape
-    ) .
-
-schema:DetailedCredentialShape
-    sh:property [ 
-        sh:path schema:credential ; 
-        sh:datatype xsd:string ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:policies ;
-        sh:node schema:PolicyShape ;
-        sh:maxCount 32 ;
-    ] .
-
-schema:PolicyShape
-    sh:or (
-        [ sh:datatype xsd:string ]
-        schema:PolicyDetailShape
-    ) .
-
-schema:PolicyDetailShape
-    sh:property [ 
-        sh:path schema:policy ; 
-        sh:datatype xsd:string ; 
-        sh:minCount 1 ; 
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:args ;
-        sh:or (
-            [ sh:datatype xsd:string ]
-            schema:PolicyArgsShape
-        ) ;
-        sh:maxCount 1
-    ] .
-
-schema:PolicyArgsShape
-    sh:property [ 
-        sh:path schema:type ; 
-        sh:datatype xsd:string ; 
-        sh:minCount 1 ; 
-        sh:maxCount 1 
     ] .
 
 # Shape for Event
@@ -553,6 +186,26 @@ schema:EventShape
         sh:maxCount 1 ;
     ] .
 
+# Shape for LanguageValue
+schema:LanguageValueShape
+    sh:property [
+        sh:path schema:value ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:language ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:direction ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+    ] .
+
 # Shape for AdditionalDdos
 schema:AdditionalDdosShape
     sh:property [
@@ -565,195 +218,5 @@ schema:AdditionalDdosShape
         sh:path schema:data ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] .
-
-# Shape for License
-schema:LicenseShape
-    sh:property [
-        sh:path schema:name ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:licenseDocuments ;
-        sh:node schema:LicenseDocumentShape ;
-        sh:minCount 0 ;
-        sh:maxCount 64 ;
-    ] .
-
-# Shape for LicenseDocument
-schema:LicenseDocumentShape
-    sh:property [
-        sh:path schema:name ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:fileType ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:sha256 ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:mirrors ;
-        sh:node schema:MirrorShape ;
-        sh:maxCount 16 ;
-    ] .
-
-# Shape for Mirror
-schema:MirrorShape
-    sh:property [
-        sh:path schema:type ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:method ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:url ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] .
-
-# Shape for Stats
-schema:StatsShape
-    sh:property [
-        sh:path schema:allocated ;
-        sh:datatype xsd:integer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:orders ;
-        sh:datatype xsd:integer ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:price ;
-        sh:node schema:PriceShape ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] .
-
-# Shape for Price
-schema:PriceShape
-    sh:property [
-        sh:path schema:value ;
-        sh:datatype xsd:decimal ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:tokenSymbol ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:tokenAddress ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] .
-
-# Shape for Datatoken
-schema:DatatokenShape
-    sh:property [
-        sh:path schema:address ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:name ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:symbol ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:serviceId ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] .
-
-# Shape for AccessDetail
-schema:AccessDetailShape
-    sh:property [
-        sh:path schema:type ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:price ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:addressOrId ;
-        sh:datatype xsd:string ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:baseToken ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:datatoken ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:paymentCollector ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:templateId ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:isOwned ;
-        sh:datatype xsd:boolean ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:validOrderTx ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:isPurchasable ;
-        sh:datatype xsd:boolean ;
-        sh:maxCount 1 ;
-    ] ;
-    sh:property [
-        sh:path schema:publisherMarketOrderFee ;
-        sh:datatype xsd:string ;
         sh:maxCount 1 ;
     ] .
