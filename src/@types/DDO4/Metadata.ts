@@ -47,6 +47,11 @@ export interface MetadataAlgorithm {
      * @type {string}
      */
     checksum: string;
+    /**
+     * Dockerfile content. If exists, it will be used to build the image and ignore image, tag and checksum fields.
+     * @type {string}
+     */
+    dockerfile?: string;
 
     /**
      * Array of objects describing the consumer parameters
