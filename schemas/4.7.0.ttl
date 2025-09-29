@@ -411,6 +411,14 @@ schema:TrustedAlgoShape
         sh:maxLength 256;
     ] ;
     sh:property [
+        sh:path schema:serviceId ;
+        sh:datatype xsd:string ;
+        sh:pattern "^(.*)$" ;
+        sh:minCount 0;
+        sh:maxCount 1;
+        sh:maxLength 1024;
+    ] ;
+    sh:property [
         sh:path schema:filesChecksum ;
         sh:datatype xsd:string ;
         sh:pattern "^(.*)$" ;
