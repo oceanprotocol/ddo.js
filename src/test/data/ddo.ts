@@ -177,7 +177,7 @@ export const DDOExampleV4Compute = {
 
 export const DDOExampleV5 = {
   '@context': ['https://www.w3.org/ns/credentials/v2'],
-  version: '5.0.0',
+  version: '5.1.0',
   id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
   credentialSubject: {
     id: 'did:ope:fa0e8fa9550e8eb13392d6eeb9ba9f8111801b332c8d2345b350b3bc66b379d5',
@@ -224,27 +224,56 @@ export const DDOExampleV5 = {
           allowNetworkAccess: true
         },
         state: 0,
-        credentials: [{}]
+        credentials: {
+          allow: [
+            {
+              type: 'address',
+              values: [
+                {
+                  address: '*'
+                }
+              ]
+            }
+          ],
+          deny: [],
+          match_deny: 'any'
+        }
       }
     ],
     credentials: {
-      allow: {
-        request_credentials: [
-          {
-            type: 'VerifiableId',
-            format: 'jwt_vc_json'
-          },
-          {
-            type: 'ProofOfResidence',
-            format: 'jwt_vc_json'
-          },
-          {
-            type: 'OpenBadgeCredential',
-            format: 'jwt_vc_json',
-            policies: ['signature']
-          }
-        ]
-      }
+      allow: [
+        {
+          type: 'SSIpolicy',
+          values: [
+            {
+              request_credentials: [
+                {
+                  format: 'jwt_vc_json',
+                  policies: [],
+                  type: 'UniversityDegree'
+                }
+              ],
+              vc_policies: ['signature', 'not-before', 'revoked-status-list'],
+              vp_policies: [
+                {
+                  policy: 'holder-binding'
+                },
+                {
+                  policy: 'presentation-definition'
+                },
+                {
+                  policy: 'minimum-credentials',
+                  args: '1'
+                },
+                {
+                  policy: 'maximum-credentials',
+                  args: '2'
+                }
+              ]
+            }
+          ]
+        }
+      ]
     },
     datatokens: [
       {
@@ -276,9 +305,7 @@ export const DDOExampleV5 = {
       owner: '0x0DB823218e337a6817e6D7740eb17635DEAdafAF',
       created: '2022-12-30T08:40:43'
     },
-    purgatory: {
-      state: false
-    },
+    purgatory: { state: false },
     stats: [
       {
         orders: 36,
@@ -292,7 +319,7 @@ export const DDOExampleV5 = {
   },
   issuer: 'did:op:issuer-did',
   type: ['VerifiableCredential'],
-  additionalDdos: [{ type: '', data: '' }]
+  additionalDdos: []
 };
 
 export const invalidDDOV4 = {
