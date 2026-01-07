@@ -1,6 +1,7 @@
 import { Event } from './Event.js';
 import { Metadata } from './Metadata.js';
 import { Service } from './Service.js';
+import { Credential } from './Credential.js';
 
 export interface CredentialSubject {
   id?: string; // DID:
