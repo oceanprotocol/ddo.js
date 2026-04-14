@@ -1,17 +1,11 @@
-let rdf;
-let SHACLValidator;
-let formats;
+let rdf: any;
+let SHACLValidator: any;
 
 export const getRdfjsLibraries = async () => {
-  if (!formats) {
-    const formatsModule = await import('@rdfjs/formats-common');
-    formats = formatsModule.default;
-  }
-
   if (!rdf) {
-    const envNode = await import('@zazuko/env-node');
-    rdf = envNode.default;
-    rdf.formats.import(formats);
+    // Browser-compatible RDF environment (no filesystem access needed)
+    const envModule = await import('@zazuko/env');
+    rdf = envModule.default;
   }
 
   if (!SHACLValidator) {
@@ -19,5 +13,5 @@ export const getRdfjsLibraries = async () => {
     SHACLValidator = shaclModule.default;
   }
 
-  return { formats, rdf, SHACLValidator };
+  return { rdf, SHACLValidator };
 };

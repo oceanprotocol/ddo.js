@@ -1,10 +1,7 @@
-import { createHash } from 'crypto';
-import { getAddress } from 'ethers';
-import { dirname, resolve } from 'path';
+import { getAddress, sha256, toUtf8Bytes } from 'ethers';
 import { fromRdf } from 'rdf-literal';
-// @ts-ignore
-import { Readable } from 'stream';
-import { fileURLToPath } from 'url';
+import { Parser as N3Parser } from 'n3';
+import jsonld from 'jsonld';
 import { AssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
@@ -15,8 +12,8 @@ import {
   UpdateFields,
   VersionedDDO
 } from '../@types/index.js';
-import { existsSync } from 'fs';
 import { getRdfjsLibraries } from '../utils/importUtils.js';
+import { SCHEMAS } from '../schemas/index.js';
 
 const CURRENT_VERSION = '5.0.0';
 const ALLOWED_VERSIONS = [
@@ -76,11 +73,26 @@ export abstract class DDOManager {
   abstract getAssetFields(): AssetFields;
 
   /**
+   * Abstract method to update multiple fields.
+   * @param fields - Partial object containing fields to update.
+   * @returns The updated DDO data.
+   */
+  abstract updateFields(fields: UpdateFields): Record<string, any>;
+
+  /**
    * Retrieves the DDO data.
    * @returns The DDO data as a record.
    */
   public getDDOData(): Record<string, any> {
     return this.ddoData;
+  }
+
+  /**
+   * Method to retrieve the DID.
+   * @returns The DID of ddo.
+   */
+  public getDid(): string {
+    return this.getDDOData().id || null;
   }
 
   public deleteIndexedMetadataIfExists(
@@ -95,40 +107,48 @@ export abstract class DDOManager {
   }
 
   /**
-   * Abstract method to update multiple fields.
-   * @param fields - Partial object containing fields to update.
-   * @returns The updated DDO data.
-   */
-  abstract updateFields(fields: UpdateFields): Record<string, any>;
-
-  /**
-   * Method to retrieve the DID.
-   * @returns The DID of ddo.
-   */
-  public getDid(): string {
-    return this.getDDOData().id || null;
-  }
-
-  /**
-   * Resolves the schema file path for a given version.
+   * Returns the SHACL schema content for a given version.
    * @param version - The schema version (default: CURRENT_VERSION).
-   * @returns The resolved schema file path.
+   * @returns The schema content as a string.
    * @throws An error if the version is not supported.
    */
   public getSchema(version: string = CURRENT_VERSION): string {
     if (!ALLOWED_VERSIONS.includes(version)) {
       throw new Error(`Unsupported schema version: ${version}`);
     }
-
-    const currentModulePath = fileURLToPath(import.meta.url);
-    const currentDirectory = dirname(currentModulePath);
-
-    const schemaPath = resolve(currentDirectory, `../schemas/${version}.ttl`);
-    if (existsSync(schemaPath)) {
-      return schemaPath;
+    const schema = SCHEMAS[version];
+    if (!schema) {
+      throw new Error(`Schema not found for version: ${version}`);
     }
+    return schema;
+  }
 
-    return resolve(currentDirectory, `../../schemas/${version}.ttl`);
+  /**
+   * Parses schema and data, runs SHACL validation.
+   * @returns Validation report or null if parsing failed (errors added to extraErrors).
+   */
+  protected async runShaclValidation(
+    ddoCopy: Record<string, any>,
+    extraErrors: Record<string, string[]>
+  ): Promise<{ conforms: boolean; results: any[]; dataset: any } | null> {
+    const { rdf, SHACLValidator } = await getRdfjsLibraries();
+
+    // Parse Turtle schema with n3
+    const schemaContent = this.getSchema(ddoCopy.version);
+    const shapes = rdf.dataset(new N3Parser().parse(schemaContent));
+
+    // Parse JSON-LD data: convert to N-Quads, then parse with n3
+    let nquads;
+    try {
+      nquads = await jsonld.toRDF(ddoCopy, { format: 'application/n-quads' });
+    } catch {
+      extraErrors.output = ['Output is null or invalid'];
+      return null;
+    }
+    const data = rdf.dataset(new N3Parser().parse(nquads as string));
+
+    const validator = new SHACLValidator(shapes, { factory: rdf });
+    return validator.validate(data);
   }
 
   /**
@@ -156,6 +176,12 @@ export class V4DDO extends DDOManager {
     super(ddoData);
   }
 
+  makeDid(nftAddress: string, chainId: string): string {
+    return (
+      'did:op:' + sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
+    );
+  }
+
   getDDOFields(): DDOFields {
     const data = this.getDDOData();
     return {
@@ -174,15 +200,6 @@ export class V4DDO extends DDOManager {
       indexedMetadata: this.getDDOData().indexedMetadata,
       datatokens: this.getDDOData().datatokens
     };
-  }
-
-  makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:op:' +
-      createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
-        .digest('hex')
-    );
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
@@ -205,45 +222,33 @@ export class V4DDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    const { rdf, formats, SHACLValidator } = await getRdfjsLibraries();
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
     const extraErrors: Record<string, string[]> = {};
+
     ddoCopy['@type'] = 'DDO';
-    ddoCopy['@context'] = {
-      '@vocab': 'http://schema.org/'
-    };
+    ddoCopy['@context'] = { '@vocab': 'http://schema.org/' };
+
     if (!chainId) {
-      if (!('chainId' in extraErrors)) extraErrors.chainId = [];
-      extraErrors.chainId.push('chainId is missing or invalid.');
+      extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
     try {
       getAddress(nftAddress);
-    } catch (err) {
-      if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
-      extraErrors.nftAddress.push('nftAddress is missing or invalid.');
+    } catch {
+      extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
-      if (!('id' in extraErrors)) extraErrors.id = [];
-      extraErrors.id.push('did is not valid for chain Id and nft address');
+    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
+      extraErrors.id = ['did is not valid for chain Id and nft address'];
     }
-    const schemaFilePath = this.getSchema(ddoCopy.version);
-    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
-    const dataStream = Readable.from(JSON.stringify(ddoCopy));
-    const output = formats.parsers.import('application/ld+json', dataStream);
-    if (!output) {
-      extraErrors.output = ['Output is null or invalid'];
-      return [false, extraErrors];
-    }
-    const data = await rdf.dataset().import(output);
-    const validator = new SHACLValidator(shapes, { factory: rdf });
-    const report = await validator.validate(data);
-    if (report.conforms) {
-      return [true, {}];
-    }
+
+    const report = await this.runShaclValidation(ddoCopy, extraErrors);
+    if (!report) return [false, extraErrors];
+
+    if (report.conforms) return [true, {}];
+
     for (const result of report.results) {
       const key = result.path?.value.replace('http://schema.org/', '');
       if (key) {
@@ -267,9 +272,7 @@ export class V5DDO extends DDOManager {
   makeDid(nftAddress: string, chainId: string): string {
     return (
       'did:ope:' +
-      createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
-        .digest('hex')
+      sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
     );
   }
 
@@ -325,26 +328,25 @@ export class V5DDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    const { rdf, formats, SHACLValidator } = await getRdfjsLibraries();
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy.credentialSubject;
     const extraErrors: Record<string, string[]> = {};
+
     ddoCopy['@type'] = 'VerifiableCredential';
-    ddoCopy['@context'] = {
-      '@vocab': 'https://www.w3.org/ns/credentials/v2/'
-    };
+    ddoCopy['@context'] = { '@vocab': 'https://www.w3.org/ns/credentials/v2/' };
+
     if (!ddoCopy.credentialSubject.chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
     try {
       getAddress(nftAddress);
-    } catch (err) {
+    } catch {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
+    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
       extraErrors.id = ['did is not valid for chainId and nft address'];
     }
 
@@ -356,22 +358,10 @@ export class V5DDO extends DDOManager {
       extraErrors.services = ['services are missing or invalid.'];
     }
 
-    const schemaFilePath = this.getSchema(ddoCopy.version);
+    const report = await this.runShaclValidation(ddoCopy, extraErrors);
+    if (!report) return [false, extraErrors];
 
-    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
-    const dataStream = Readable.from(JSON.stringify(ddoCopy));
-    const output = formats.parsers.import('application/ld+json', dataStream);
-    if (!output) {
-      extraErrors.output = ['Output is null or invalid'];
-      return [false, extraErrors];
-    }
-    const data = await rdf.dataset().import(output);
-    const validator = new SHACLValidator(shapes, { factory: rdf });
-    const report = await validator.validate(data);
-
-    if (report.conforms) {
-      return [true, {}];
-    }
+    if (report.conforms) return [true, {}];
 
     for (const result of report.results) {
       const key = result?.path?.value.replace(
@@ -383,7 +373,6 @@ export class V5DDO extends DDOManager {
         extraErrors[key].push(result.message[0].value);
       }
     }
-
     extraErrors.fullReport = await report.dataset.serialize({
       format: 'application/ld+json'
     });
@@ -399,10 +388,7 @@ export class DeprecatedDDO extends DDOManager {
 
   makeDid(nftAddress: string, chainId: string): string {
     return (
-      'did:op:' +
-      createHash('sha256')
-        .update(getAddress(nftAddress) + chainId)
-        .digest('hex')
+      'did:op:' + sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
     );
   }
 
@@ -433,7 +419,6 @@ export class DeprecatedDDO extends DDOManager {
       created: null,
       tokenURI: null
     };
-
     return {
       indexedMetadata,
       datatokens: null
@@ -451,45 +436,33 @@ export class DeprecatedDDO extends DDOManager {
   }
 
   async validate(): Promise<[boolean, Record<string, string[]>]> {
-    const { rdf, formats, SHACLValidator } = await getRdfjsLibraries();
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
     const extraErrors: Record<string, string[]> = {};
+
     ddoCopy['@type'] = 'DDO';
-    ddoCopy['@context'] = {
-      '@vocab': 'http://schema.org/'
-    };
+    ddoCopy['@context'] = { '@vocab': 'http://schema.org/' };
+
     if (!chainId) {
-      if (!('chainId' in extraErrors)) extraErrors.chainId = [];
-      extraErrors.chainId.push('chainId is missing or invalid.');
+      extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
     try {
       getAddress(nftAddress);
-    } catch (err) {
-      if (!('nftAddress' in extraErrors)) extraErrors.nftAddress = [];
-      extraErrors.nftAddress.push('nftAddress is missing or invalid.');
+    } catch {
+      extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (!(this.makeDid(nftAddress, chainId.toString(10)) === ddoCopy.id)) {
-      if (!('id' in extraErrors)) extraErrors.id = [];
-      extraErrors.id.push('did is not valid for chain Id and nft address');
+    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
+      extraErrors.id = ['did is not valid for chain Id and nft address'];
     }
-    const schemaFilePath = this.getSchema(ddoCopy.version);
-    const shapes = await rdf.dataset().import(rdf.fromFile(schemaFilePath));
-    const dataStream = Readable.from(JSON.stringify(ddoCopy));
-    const output = formats.parsers.import('application/ld+json', dataStream);
-    if (!output) {
-      extraErrors.output = ['Output is null or invalid'];
-      return [false, extraErrors];
-    }
-    const data = await rdf.dataset().import(output);
-    const validator = new SHACLValidator(shapes, { factory: rdf });
-    const report = await validator.validate(data);
-    if (report.conforms) {
-      return [true, {}];
-    }
+
+    const report = await this.runShaclValidation(ddoCopy, extraErrors);
+    if (!report) return [false, extraErrors];
+
+    if (report.conforms) return [true, {}];
+
     for (const result of report.results) {
       const key = result.path?.value.replace('http://schema.org/', '');
       if (key) {
