@@ -51,7 +51,6 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@zazuko/env": "^2.4.2",
     "ethers": "^6.15.0",
     "jsonld": "^8.3.3",
     "n3": "^1.23.1",

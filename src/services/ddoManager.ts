@@ -1,6 +1,6 @@
 import { getAddress, sha256, toUtf8Bytes } from 'ethers';
 import { fromRdf } from 'rdf-literal';
-import { Parser as N3Parser } from 'n3';
+import { Parser as N3Parser, Store } from 'n3';
 import jsonld from 'jsonld';
 import { AssetFields } from '../@types/AssetTypes.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
@@ -12,7 +12,7 @@ import {
   UpdateFields,
   VersionedDDO
 } from '../@types/index.js';
-import { getRdfjsLibraries } from '../utils/importUtils.js';
+import { getSHACLValidator } from '../utils/importUtils.js';
 import { SCHEMAS } from '../schemas/index.js';
 
 const CURRENT_VERSION = '5.0.0';
@@ -131,11 +131,11 @@ export abstract class DDOManager {
     ddoCopy: Record<string, any>,
     extraErrors: Record<string, string[]>
   ): Promise<{ conforms: boolean; results: any[]; dataset: any } | null> {
-    const { rdf, SHACLValidator } = await getRdfjsLibraries();
+    const SHACLValidator = await getSHACLValidator();
 
     // Parse Turtle schema with n3
     const schemaContent = this.getSchema(ddoCopy.version);
-    const shapes = rdf.dataset(new N3Parser().parse(schemaContent));
+    const shapes = new Store(new N3Parser().parse(schemaContent));
 
     // Parse JSON-LD data: convert to N-Quads, then parse with n3
     let nquads;
@@ -145,9 +145,9 @@ export abstract class DDOManager {
       extraErrors.output = ['Output is null or invalid'];
       return null;
     }
-    const data = rdf.dataset(new N3Parser().parse(nquads as string));
+    const data = new Store(new N3Parser().parse(nquads as string));
 
-    const validator = new SHACLValidator(shapes, { factory: rdf });
+    const validator = new SHACLValidator(shapes);
     return validator.validate(data);
   }
 
@@ -256,9 +256,7 @@ export class V4DDO extends DDOManager {
         extraErrors[key].push(fromRdf(result.message[0]));
       }
     }
-    extraErrors.fullReport = await report.dataset.serialize({
-      format: 'application/ld+json'
-    });
+    extraErrors.fullReport = report.dataset.toString();
     return [false, extraErrors];
   }
 }
@@ -373,9 +371,7 @@ export class V5DDO extends DDOManager {
         extraErrors[key].push(result.message[0].value);
       }
     }
-    extraErrors.fullReport = await report.dataset.serialize({
-      format: 'application/ld+json'
-    });
+    extraErrors.fullReport = report.dataset.toString();
     return [false, extraErrors];
   }
 }
@@ -470,9 +466,7 @@ export class DeprecatedDDO extends DDOManager {
         extraErrors[key].push(fromRdf(result.message[0]));
       }
     }
-    extraErrors.fullReport = await report.dataset.serialize({
-      format: 'application/ld+json'
-    });
+    extraErrors.fullReport = report.dataset.toString();
     return [false, extraErrors];
   }
 }
