@@ -16,6 +16,11 @@
   },
   "types": "./dist/types/index.d.ts",
   "source": "./src/index.ts",
+  "files": [
+    "dist/ddo.*",
+    "dist/types",
+    "!dist/types/test"
+  ],
   "scripts": {
     "lint": "eslint --ignore-path .gitignore --ext .ts,.tsx .",
     "lint:fix": "eslint --ignore-path .gitignore --ext .ts,.tsx . --fix",
