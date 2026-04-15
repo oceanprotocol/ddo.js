@@ -52,7 +52,7 @@
     "chai": "^5.1.2",
     "mocha": "^11.0.1",
     "prettier": "^2.7.1",
-    "release-it": "^18.1.2",
+    "release-it": "^20.0.0",
     "typescript": "^5.7.2"
   },
   "dependencies": {
