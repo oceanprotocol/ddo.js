@@ -4,19 +4,23 @@
   "repository": "https://github.com/oceanprotocol/ddo.js.git",
   "author": "Ocean Protocol <devops@oceanprotocol.com>",
   "license": "Apache-2.0",
-  "main": "./dist/ddo.module.js",
-  "umd:main": "dist/ddo.umd.js",
+  "main": "./dist/ddo.cjs",
+  "umd:main": "./dist/ddo.umd.js",
   "module": "./dist/ddo.js",
   "type": "module",
-  "export": {
-    "require": "./dist/ddo.cjs",
-    "import": "./dist/ddo.module.js"
+  "exports": {
+    ".": {
+      "require": "./dist/ddo.cjs",
+      "import": "./dist/ddo.js"
+    }
   },
   "types": "./dist/types/index.d.ts",
   "source": "./src/index.ts",
   "scripts": {
     "lint": "eslint --ignore-path .gitignore --ext .ts,.tsx .",
     "lint:fix": "eslint --ignore-path .gitignore --ext .ts,.tsx . --fix",
+    "generate:schemas": "node scripts/generate-schemas.js",
+    "prebuild": "npm run generate:schemas",
     "build": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
     "buildesm": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json",
     "build:tsc": "tsc --sourceMap",
@@ -24,7 +28,8 @@
     "mocha": "mocha --node-env=test --config .mocharc.json",
     "clean-tests": "rm -rf ./dist/test",
     "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
-    "test:unit": "npm run clean-tests && npm run build-tests && npm run mocha \"./dist/test/**/*.test.js\"",
+    "pretest:unit": "npm run generate:schemas && npm run clean-tests && npm run build-tests",
+    "test:unit": "npm run mocha \"./dist/test/**/*.test.js\"",
     "release": "release-it --non-interactive"
   },
   "devDependencies": {
@@ -32,22 +37,23 @@
     "@types/mocha": "^10.0.10",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
+    "@zazuko/env-node": "^3.0.0",
+    "@zazuko/rdf-utils-fs": "^3.3.1",
     "eslint": "^8.57.0",
     "eslint-config-oceanprotocol": "^2.0.3",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^4.2.1",
     "microbundle": "^0.15.1",
+    "chai": "^5.1.2",
     "mocha": "^11.0.1",
     "prettier": "^2.7.1",
     "release-it": "^18.1.2",
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@rdfjs/formats-common": "^3.1.0",
-    "@types/rdfjs__formats-common": "^3.1.5",
-    "@zazuko/env-node": "^2.1.4",
-    "chai": "^5.1.2",
     "ethers": "^6.15.0",
+    "jsonld": "^8.3.3",
+    "n3": "^1.23.1",
     "rdf-literal": "^2.0.0",
     "rdf-validate-shacl": "^0.5.6"
   },
