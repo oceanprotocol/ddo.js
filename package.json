@@ -44,12 +44,12 @@
     "@typescript-eslint/parser": "^6.4.1",
     "@zazuko/env-node": "^3.0.0",
     "@zazuko/rdf-utils-fs": "^3.3.1",
+    "chai": "^5.1.2",
     "eslint": "^8.57.0",
     "eslint-config-oceanprotocol": "^2.0.3",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^4.2.1",
     "microbundle": "^0.15.1",
-    "chai": "^5.1.2",
     "mocha": "^11.0.1",
     "prettier": "^2.7.1",
     "release-it": "^18.1.2",
@@ -61,6 +61,9 @@
     "n3": "^1.23.1",
     "rdf-literal": "^2.0.0",
     "rdf-validate-shacl": "^0.5.6"
+  },
+  "overrides": {
+    "rollup-plugin-typescript2": "0.37.0"
   },
   "release-it": {
     "hooks": {
