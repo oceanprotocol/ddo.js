@@ -10,7 +10,10 @@ export interface ElasticsearchMapping {
 const v4ServiceProperties = {
   id: { type: 'keyword' },
   type: { type: 'keyword' },
-  name: { type: 'text', fields: { keyword: { type: 'keyword', ignore_above: 256 } } },
+  name: {
+    type: 'text',
+    fields: { keyword: { type: 'keyword', ignore_above: 256 } }
+  },
   description: { type: 'text' },
   files: { type: 'keyword', index: false },
   datatokenAddress: { type: 'keyword' },
@@ -153,7 +156,10 @@ export const ddoMappingV4_7_0: ElasticsearchMapping = {
 const v5ServiceProperties = {
   id: { type: 'keyword' },
   type: { type: 'keyword' },
-  name: { type: 'text', fields: { keyword: { type: 'keyword', ignore_above: 256 } } },
+  name: {
+    type: 'text',
+    fields: { keyword: { type: 'keyword', ignore_above: 256 } }
+  },
   displayName: {
     type: 'object',
     properties: {
