@@ -133,6 +133,7 @@ const v4MappingProperties = {
   }
 };
 
+/* eslint-disable camelcase */
 export const ddoMappingV4_1_0: ElasticsearchMapping = {
   index: 'op_ddo_v4.1.0',
   body: { mappings: { properties: v4MappingProperties } }
@@ -152,6 +153,7 @@ export const ddoMappingV4_7_0: ElasticsearchMapping = {
   index: 'op_ddo_v4.7.0',
   body: { mappings: { properties: v4MappingProperties } }
 };
+/* eslint-enable camelcase */
 
 const v5ServiceProperties = {
   id: { type: 'keyword' },
@@ -190,6 +192,7 @@ const v5ServiceProperties = {
   additionalInformation: { type: 'object', enabled: false }
 };
 
+/* eslint-disable-next-line camelcase */
 export const ddoMappingV5_0_0: ElasticsearchMapping = {
   index: 'op_ddo_v5.0.0',
   body: {
@@ -274,6 +277,7 @@ export const ddoMappingV5_0_0: ElasticsearchMapping = {
   }
 };
 
+/* eslint-disable camelcase */
 export const ddoElasticMappings: ElasticsearchMapping[] = [
   ddoMappingV4_1_0,
   ddoMappingV4_3_0,
@@ -281,3 +285,4 @@ export const ddoElasticMappings: ElasticsearchMapping[] = [
   ddoMappingV4_7_0,
   ddoMappingV5_0_0
 ];
+/* eslint-enable camelcase */
