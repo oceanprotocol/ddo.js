@@ -13,7 +13,8 @@ import {
   deprecatedDDO,
   invalidDDOV4,
   invalidDDOV5,
-  invalidDeprecatedDDO
+  invalidDeprecatedDDO,
+  validEnterpriseDDOV5
 } from '../data/ddo.js';
 
 describe('DDOManager Validation Tests', () => {
@@ -71,6 +72,66 @@ describe('DDOManager Validation Tests', () => {
     expect(validationResult[1].services).to.include(
       'services are missing or invalid.'
     );
+  });
+
+  it('should validate a valid V5 enterprise DDO into a full RDF graph (not vacuously)', async () => {
+    // Guards against the "Output is null or invalid" regression: the VC-format
+    // DDO must expand into the Ocean vocabulary so SHACL has real target nodes.
+    const validCopy = structuredClone(validEnterpriseDDOV5);
+    const validationResult = await validateDDO(validCopy);
+    expect(validationResult[0]).to.eql(true);
+    expect(validationResult[1]).to.eql({});
+  });
+
+  it('should fail V5 DDO validation with a specific per-field error for a missing nested field', async () => {
+    // Remove a deeply-nested required field (metadata.name). The fix must
+    // surface the actual failing field key rather than the opaque parent
+    // "Value does not have shape CredentialSubjectShape" message, and must
+    // never return "Output is null or invalid".
+    const invalidCopy = structuredClone(validEnterpriseDDOV5);
+    delete invalidCopy.credentialSubject.metadata.name;
+
+    const validationResult = await validateDDO(invalidCopy);
+    expect(validationResult[0]).to.eql(false);
+    expect(validationResult[1]).to.have.property('name');
+    expect(validationResult[1].name.join(' ')).to.match(/less than 1 values/i);
+    expect(validationResult[1]).to.not.have.property('output');
+    expect(JSON.stringify(validationResult[1])).to.not.include(
+      'Output is null or invalid'
+    );
+  });
+
+  it('should return a clean field-level error (not a raw throw) for an empty nftAddress', async () => {
+    const invalidCopy = structuredClone(validEnterpriseDDOV5);
+    invalidCopy.credentialSubject.nftAddress = '';
+
+    const validationResult = await validateDDO(invalidCopy);
+    expect(validationResult[0]).to.eql(false);
+    expect(validationResult[1]).to.have.property('nftAddress');
+    expect(validationResult[1].nftAddress).to.include(
+      'nftAddress is missing or invalid.'
+    );
+    // The raw ethers "invalid address" TypeError must not leak through.
+    expect(JSON.stringify(validationResult[1])).to.not.include(
+      'invalid address'
+    );
+    expect(validationResult[1]).to.not.have.property('general');
+  });
+
+  it('should return a clean field-level error for an absent nftAddress', async () => {
+    const invalidCopy = structuredClone(validEnterpriseDDOV5);
+    delete invalidCopy.credentialSubject.nftAddress;
+
+    const validationResult = await validateDDO(invalidCopy);
+    expect(validationResult[0]).to.eql(false);
+    expect(validationResult[1]).to.have.property('nftAddress');
+    expect(validationResult[1].nftAddress).to.include(
+      'nftAddress is missing or invalid.'
+    );
+    expect(JSON.stringify(validationResult[1])).to.not.include(
+      'invalid address'
+    );
+    expect(validationResult[1]).to.not.have.property('general');
   });
 
   it('should return a valid DID for V4 DDO', () => {

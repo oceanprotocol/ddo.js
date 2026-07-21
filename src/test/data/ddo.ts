@@ -373,3 +373,9 @@ export const invalidDDOV5 = {
   type: ['VerifiableCredential'],
   additionalDdos: [{ type: '', data: '' }]
 };
+
+// Immutable, self-contained copies of the valid v5 enterprise DDO. Other test
+// suites mutate DDOExampleV5 in place (via updateFields), so these deep clones
+// are captured at module-eval time to give the validation tests a stable,
+// well-formed baseline whose `id` still matches makeDid(nftAddress, chainId).
+export const validEnterpriseDDOV5 = structuredClone(DDOExampleV5);
