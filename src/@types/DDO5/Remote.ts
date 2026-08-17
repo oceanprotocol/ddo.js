@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 export interface RemoteObject {
   name: string;
   displayName?: LanguageValueObject;

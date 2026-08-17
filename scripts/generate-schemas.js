@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const schemasDir = join(__dirname, '..', 'schemas');
 const outputFile = join(__dirname, '..', 'src', 'schemas', 'index.ts');
 
-const schemaFiles = readdirSync(schemasDir).filter(f => f.endsWith('.ttl'));
+const schemaFiles = readdirSync(schemasDir).filter((f) => f.endsWith('.ttl'));
 
 if (schemaFiles.length === 0) {
   console.error('Error: No .ttl files found in', schemasDir);
@@ -23,7 +23,10 @@ for (const file of schemaFiles) {
   const version = file.replace('.ttl', '');
   const content = readFileSync(join(schemasDir, file), 'utf-8');
   // Escape for template literal: backslashes first, then backticks and ${
-  const escaped = content.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\${/g, '\\${');
+  const escaped = content
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\${/g, '\\${');
   output += `  '${version}': \`${escaped}\`,\n\n`;
 }
 

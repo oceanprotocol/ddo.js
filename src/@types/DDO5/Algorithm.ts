@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 export interface Algorithm {
   container: Container;
   language?: string;

@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import { MetadataAlgorithm } from '../DDO4/Metadata.js';
 import { LanguageValueObject, RemoteObject } from './Remote.js';
 
