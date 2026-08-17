@@ -141,14 +141,64 @@ export abstract class DDOManager {
     let nquads;
     try {
       nquads = await jsonld.toRDF(ddoCopy, { format: 'application/n-quads' });
-    } catch {
-      extraErrors.output = ['Output is null or invalid'];
+    } catch (error) {
+      extraErrors.general = [`Failed to convert DDO to RDF: ${error}`];
       return null;
     }
     const data = new Store(new N3Parser().parse(nquads as string));
 
+    // A near-empty graph means JSON-LD expansion dropped the DDO vocabulary
+    // (e.g. an unmapped `@context` such as the raw Verifiable Credentials v2
+    // context). SHACL would then find no target nodes and "conform" vacuously,
+    // so a broken DDO would validate as true. Treat that as a hard failure
+    // instead of silently passing.
+    if (data.size === 0) {
+      extraErrors.general = [
+        'DDO could not be expanded into RDF; no statements were produced.'
+      ];
+      return null;
+    }
+
     const validator = new SHACLValidator(shapes);
     return validator.validate(data);
+  }
+
+  /**
+   * Recursively collects SHACL violations into field-level errors.
+   *
+   * rdf-validate-shacl reports a failed `sh:node` constraint as a generic
+   * "Value does not have shape X" on the *parent* path, and nests the real,
+   * per-field violation under `result.detail`. Walking into `detail` lets us
+   * key the error by the actual failing field (e.g. `name`, `timeout`) rather
+   * than the opaque parent shape, which is essential for the deeply nested v5
+   * `credentialSubject` structure.
+   *
+   * @param results - SHACL validation results (or a nested `detail` array).
+   * @param extraErrors - Accumulator keyed by field name.
+   * @param vocab - Namespace IRI to strip from result paths to get the key.
+   */
+  protected collectShaclViolations(
+    results: any[],
+    extraErrors: Record<string, string[]>,
+    vocab: string
+  ): void {
+    for (const result of results) {
+      if (Array.isArray(result?.detail) && result.detail.length > 0) {
+        this.collectShaclViolations(result.detail, extraErrors, vocab);
+        continue;
+      }
+      const rawPath = result?.path?.value;
+      const key = rawPath ? rawPath.replace(vocab, '') : '';
+      if (!key) continue;
+      const term = result?.message?.[0];
+      let message: string;
+      if (term == null) message = 'Invalid value';
+      else if (typeof term === 'string') message = term;
+      else if (typeof term.value === 'string') message = term.value;
+      else message = String(fromRdf(term));
+      if (!(key in extraErrors)) extraErrors[key] = [];
+      if (!extraErrors[key].includes(message)) extraErrors[key].push(message);
+    }
   }
 
   /**
@@ -226,22 +276,36 @@ export class V4DDO extends DDOManager {
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
     const extraErrors: Record<string, string[]> = {};
+    const SCHEMA_VOCAB = 'http://schema.org/';
 
     ddoCopy['@type'] = 'DDO';
-    ddoCopy['@context'] = { '@vocab': 'http://schema.org/' };
+    ddoCopy['@context'] = { '@vocab': SCHEMA_VOCAB };
 
     if (!chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
+    let validAddress = false;
     try {
       getAddress(nftAddress);
+      validAddress = true;
     } catch {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
-      extraErrors.id = ['did is not valid for chain Id and nft address'];
+    // Only derive the DID when the inputs makeDid needs are present. A missing
+    // chainId or an empty/invalid nftAddress would otherwise make ethers'
+    // getAddress() throw a raw TypeError; we surface a clean field error above.
+    if (validAddress && chainId) {
+      try {
+        if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
+          extraErrors.id = ['did is not valid for chain Id and nft address'];
+        }
+      } catch {
+        extraErrors.id = [
+          'did could not be derived from chain Id and nft address'
+        ];
+      }
     }
 
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
@@ -249,13 +313,7 @@ export class V4DDO extends DDOManager {
 
     if (report.conforms) return [true, {}];
 
-    for (const result of report.results) {
-      const key = result.path?.value.replace('http://schema.org/', '');
-      if (key) {
-        if (!(key in extraErrors)) extraErrors[key] = [];
-        extraErrors[key].push(fromRdf(result.message[0]));
-      }
-    }
+    this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
     extraErrors.fullReport = report.dataset.toString();
     return [false, extraErrors];
   }
@@ -328,32 +386,65 @@ export class V5DDO extends DDOManager {
   async validate(): Promise<[boolean, Record<string, string[]>]> {
     const updatedDdo = this.deleteIndexedMetadataIfExists(this.getDDOData());
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
-    const { chainId, nftAddress } = ddoCopy.credentialSubject;
     const extraErrors: Record<string, string[]> = {};
+    // The v5 SHACL shape (schemas/5.0.0.ttl) declares
+    // `@prefix schema: <https://www.w3.org/ns/credentials/v2/>`, so its
+    // property IRIs live in that namespace. Setting the DDO's `@context` to a
+    // matching `@vocab` maps every DDO / credentialSubject term
+    // (metadata, services, nftAddress, ...) onto those exact IRIs during
+    // JSON-LD expansion. Without this, the document's own VC v2 `@context`
+    // does not define the Ocean vocabulary, so `toRDF` would drop all those
+    // terms and SHACL would have nothing to validate.
+    const VC_VOCAB = 'https://www.w3.org/ns/credentials/v2/';
+
+    // A VerifiableCredential DDO carries its real payload under
+    // `credentialSubject`; without it there is nothing to validate.
+    const { credentialSubject } = ddoCopy;
+    if (!credentialSubject || typeof credentialSubject !== 'object') {
+      extraErrors.credentialSubject = [
+        'credentialSubject is missing or invalid.'
+      ];
+      return [false, extraErrors];
+    }
+
+    const { chainId, nftAddress } = credentialSubject;
 
     ddoCopy['@type'] = 'VerifiableCredential';
-    ddoCopy['@context'] = { '@vocab': 'https://www.w3.org/ns/credentials/v2/' };
+    ddoCopy['@context'] = { '@vocab': VC_VOCAB };
 
-    if (!ddoCopy.credentialSubject.chainId) {
+    if (!chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
     }
 
+    let validAddress = false;
     try {
       getAddress(nftAddress);
+      validAddress = true;
     } catch {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
-      extraErrors.id = ['did is not valid for chainId and nft address'];
-    }
-
-    if (!ddoCopy.credentialSubject.metadata) {
+    if (!credentialSubject.metadata) {
       extraErrors.metadata = ['metadata is missing or invalid.'];
     }
 
-    if (!ddoCopy.credentialSubject.services) {
+    if (!credentialSubject.services) {
       extraErrors.services = ['services are missing or invalid.'];
+    }
+
+    // Only derive the DID when the inputs makeDid needs are present. A missing
+    // chainId or an empty/invalid nftAddress would otherwise make ethers'
+    // getAddress() throw a raw TypeError; we surface a clean field error above.
+    if (validAddress && chainId) {
+      try {
+        if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
+          extraErrors.id = ['did is not valid for chainId and nft address'];
+        }
+      } catch {
+        extraErrors.id = [
+          'did could not be derived from chainId and nft address'
+        ];
+      }
     }
 
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
@@ -361,16 +452,7 @@ export class V5DDO extends DDOManager {
 
     if (report.conforms) return [true, {}];
 
-    for (const result of report.results) {
-      const key = result?.path?.value.replace(
-        'https://www.w3.org/ns/credentials/v2/',
-        ''
-      );
-      if (key) {
-        if (!(key in extraErrors)) extraErrors[key] = [];
-        extraErrors[key].push(result.message[0].value);
-      }
-    }
+    this.collectShaclViolations(report.results, extraErrors, VC_VOCAB);
     extraErrors.fullReport = report.dataset.toString();
     return [false, extraErrors];
   }

@@ -373,3 +373,22 @@ export const invalidDDOV5 = {
   type: ['VerifiableCredential'],
   additionalDdos: [{ type: '', data: '' }]
 };
+
+// Recursively freezes an object so nested fields (e.g. credentialSubject.metadata)
+// cannot be mutated. Tests must structuredClone() before mutating.
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const key of Object.keys(value as Record<string, unknown>)) {
+      deepFreeze((value as Record<string, unknown>)[key]);
+    }
+  }
+  return value;
+}
+
+// Immutable, self-contained copy of the valid v5 enterprise DDO. Other test
+// suites mutate DDOExampleV5 in place (via updateFields), so this deep clone is
+// captured at module-eval time and deep-frozen to give the validation tests a
+// stable, well-formed baseline whose `id` still matches makeDid(nftAddress,
+// chainId). structuredClone() yields a mutable copy, so tests clone before use.
+export const validEnterpriseDDOV5 = deepFreeze(structuredClone(DDOExampleV5));
