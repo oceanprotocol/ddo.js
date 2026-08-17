@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import { CredentialSubject } from './CredentialSubject.js';
 
 export interface ServiceCredentials {

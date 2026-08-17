@@ -33,9 +33,7 @@ export interface CredentialPolicyBased {
 }
 
 export type Credential =
-  | CredentialAddressBased
-  | CredentialAccessListBased
-  | CredentialPolicyBased;
+  CredentialAddressBased | CredentialAccessListBased | CredentialPolicyBased;
 
 export interface Credentials {
   match_allow?: MATCH_RULES; // any =>  it's enough to have one rule matched, all => all allow rules should match, default: 'all'
