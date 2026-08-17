@@ -35,7 +35,7 @@
     "build-tests": "tsc --sourceMap --sourceRoot ./src/test --outDir ./dist",
     "pretest:unit": "npm run generate:schemas && npm run clean-tests && npm run build-tests",
     "test:unit": "npm run mocha \"./dist/test/**/*.test.js\"",
-    "release": "release-it --ci"
+    "release": "release-it"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
