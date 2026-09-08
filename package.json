@@ -10,8 +10,14 @@
   "type": "module",
   "exports": {
     ".": {
-      "require": "./dist/ddo.cjs",
-      "import": "./dist/ddo.js"
+      "require": {
+        "types": "./dist/types/cjs/index.d.cts",
+        "default": "./dist/ddo.cjs"
+      },
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/ddo.js"
+      }
     }
   },
   "types": "./dist/types/index.d.ts",
@@ -26,8 +32,9 @@
     "lint:fix": "eslint . --fix",
     "generate:schemas": "node scripts/generate-schemas.js",
     "prebuild": "npm run generate:schemas",
-    "build": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json",
-    "buildesm": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json",
+    "build": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json --no-generateTypes && npm run build:types",
+    "buildesm": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json --no-generateTypes && npm run build:types",
+    "build:types": "tsc --project tsconfig.types.json",
     "build:tsc": "tsc --sourceMap",
     "clean": "rm -rf ./dist/ ./doc/ ./.nyc_output",
     "mocha": "mocha --node-env=test --config .mocharc.json",
