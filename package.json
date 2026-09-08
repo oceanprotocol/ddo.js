@@ -11,7 +11,7 @@
   "exports": {
     ".": {
       "require": {
-        "types": "./dist/types/cjs/index.d.cts",
+        "types": "./dist/types-cjs/index.d.cts",
         "default": "./dist/ddo.cjs"
       },
       "import": {
@@ -25,6 +25,7 @@
   "files": [
     "dist/ddo.*",
     "dist/types",
+    "dist/types-cjs",
     "!dist/types/test"
   ],
   "scripts": {
@@ -32,9 +33,13 @@
     "lint:fix": "eslint . --fix",
     "generate:schemas": "node scripts/generate-schemas.js",
     "prebuild": "npm run generate:schemas",
-    "build": "npm run clean && microbundle build --format modern,esm,cjs,umd --compress --tsconfig tsconfig.json --no-generateTypes && npm run build:types",
-    "buildesm": "npm run clean && microbundle build --format esm --compress --tsconfig tsconfig.json --no-generateTypes && npm run build:types",
-    "build:types": "tsc --project tsconfig.types.json",
+    "build": "npm run clean && npm run build:bundle -- --format modern,esm,cjs,umd && npm run build:types",
+    "prebuildesm": "npm run generate:schemas",
+    "buildesm": "npm run clean && npm run build:bundle -- --format esm && npm run build:types:esm",
+    "build:bundle": "microbundle build --compress --tsconfig tsconfig.json --no-generateTypes",
+    "prebuild:types": "npm run generate:schemas",
+    "build:types": "npm run build:types:esm && node scripts/build-cjs-types.js",
+    "build:types:esm": "tsc --project tsconfig.types.json",
     "build:tsc": "tsc --sourceMap",
     "clean": "rm -rf ./dist/ ./doc/ ./.nyc_output",
     "mocha": "mocha --node-env=test --config .mocharc.json",

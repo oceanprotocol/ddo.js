@@ -3,11 +3,10 @@
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "declaration": true,
+    "rootDir": "./src",
     "emitDeclarationOnly": true,
-    "declarationDir": "./dist/types",
-    "sourceMap": false
+    "declarationDir": "./dist/types"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+  // resolved relative to this file: "test" would match ./test, not src/test
+  "exclude": ["src/test"]
 }
