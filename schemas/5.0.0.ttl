@@ -164,6 +164,27 @@ schema:ServiceShape
         sh:maxCount 1 ;
     ] .
 
+# Shape for Credentials
+schema:CredentialsShape
+    sh:targetClass schema:Credentials ;
+    sh:property [
+        sh:path schema:deny ;
+        sh:node schema:CredentialsItemShape ;
+    ] ;
+    sh:property [
+        sh:path schema:allow ;
+        sh:node schema:CredentialsItemShape ;
+    ] .
+
+# Shape for CredentialsItem
+schema:CredentialsItemShape
+    sh:property [
+        sh:path schema:type ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] .
+
 # Shape for Event
 schema:EventShape
     sh:property [
