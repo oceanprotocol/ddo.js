@@ -53,6 +53,24 @@ describe('DDOManager Validation Tests', () => {
     expect(validationResult[1]).to.eql({});
   });
 
+  it('should reject V5 DDO with missing asset credentials', async () => {
+    const ddo = structuredClone(validEnterpriseDDOV5);
+    delete ddo.credentialSubject.credentials;
+
+    const [valid, errors] = await validateDDO(ddo);
+    expect(valid).to.eql(false);
+    expect(errors.credentials.join(' ')).to.match(/less than 1 values/i);
+  });
+
+  it('should reject V5 DDO with missing service credentials', async () => {
+    const ddo = structuredClone(validEnterpriseDDOV5);
+    delete ddo.credentialSubject.services[0].credentials;
+
+    const [valid, errors] = await validateDDO(ddo);
+    expect(valid).to.eql(false);
+    expect(errors.credentials.join(' ')).to.match(/less than 1 values/i);
+  });
+
   it('should fail V5 DDO validation due to missing credentialSubject metadata', async () => {
     const invalidCopy = JSON.parse(JSON.stringify(invalidDDOV5));
     const validationResult = await validateDDO(invalidCopy);

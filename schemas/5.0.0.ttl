@@ -65,6 +65,7 @@ schema:CredentialSubjectShape
     sh:property [
         sh:path schema:credentials ;
         sh:node schema:CredentialsShape ;
+        sh:minCount 1 ;
         sh:maxCount 64 ;
     ] ;
     sh:property [
@@ -128,6 +129,11 @@ schema:MetadataShape
 # Shape for Services
 schema:ServiceShape
     sh:property [
+        sh:path schema:credentials ;
+        sh:node schema:CredentialsShape ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
         sh:path schema:id ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
@@ -154,6 +160,27 @@ schema:ServiceShape
     sh:property [
         sh:path schema:timeout ;
         sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] .
+
+# Shape for Credentials
+schema:CredentialsShape
+    sh:targetClass schema:Credentials ;
+    sh:property [
+        sh:path schema:deny ;
+        sh:node schema:CredentialsItemShape ;
+    ] ;
+    sh:property [
+        sh:path schema:allow ;
+        sh:node schema:CredentialsItemShape ;
+    ] .
+
+# Shape for CredentialsItem
+schema:CredentialsItemShape
+    sh:property [
+        sh:path schema:type ;
+        sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] .

@@ -224,27 +224,49 @@ export const DDOExampleV5 = {
           allowNetworkAccess: true
         },
         state: 0,
-        credentials: [{}]
+        credentials: {
+          allow: [
+            {
+              type: 'address',
+              values: [{ address: '*' }]
+            }
+          ],
+          deny: [],
+          match_deny: 'any'
+        }
       }
     ],
     credentials: {
-      allow: {
-        request_credentials: [
-          {
-            type: 'VerifiableId',
-            format: 'jwt_vc_json'
-          },
-          {
-            type: 'ProofOfResidence',
-            format: 'jwt_vc_json'
-          },
-          {
-            type: 'OpenBadgeCredential',
-            format: 'jwt_vc_json',
-            policies: ['signature']
-          }
-        ]
-      }
+      allow: [
+        {
+          type: 'SSIpolicy',
+          values: [
+            {
+              request_credentials: [
+                {
+                  type: 'VerifiableId',
+                  format: 'jwt_vc_json'
+                },
+                {
+                  type: 'ProofOfResidence',
+                  format: 'jwt_vc_json'
+                },
+                {
+                  type: 'OpenBadgeCredential',
+                  format: 'jwt_vc_json',
+                  policies: ['signature']
+                }
+              ]
+            }
+          ]
+        },
+        {
+          type: 'address',
+          values: [{ address: '*' }]
+        }
+      ],
+      deny: [],
+      match_deny: 'any'
     },
     datatokens: [
       {
