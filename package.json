@@ -65,7 +65,7 @@
     "globals": "^17.9.0",
     "microbundle": "^0.15.1",
     "mocha": "^11.8.0",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.10",
     "release-it": "^21.0.2",
     "typescript": "^5.9.3"
   },
