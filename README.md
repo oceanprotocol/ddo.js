@@ -71,7 +71,7 @@ const { DDOManager } = require('@oceanprotocol/ddo-js')
 ## Quickstart
 
 ```ts
-import { DDOManager, VersionedDDO } from '@oceanprotocol/ddo-js'
+import { DDOManager, type VersionedDDO } from '@oceanprotocol/ddo-js'
 
 // `rawDdo` is any DDO object (e.g. fetched from a node, read from a file, or just built)
 const ddo: VersionedDDO = DDOManager.getDDOClass(rawDdo)
@@ -109,7 +109,7 @@ if (!isValid) {
 you call the static factory and get the right one back.
 
 ```ts
-import { DDOManager, V4DDO, V5DDO, DeprecatedDDO, VersionedDDO } from '@oceanprotocol/ddo-js'
+import { DDOManager, V4DDO, V5DDO, DeprecatedDDO, type VersionedDDO } from '@oceanprotocol/ddo-js'
 
 const instance = DDOManager.getDDOClass(rawDdo)
 if (instance instanceof V5DDO) {
@@ -159,7 +159,7 @@ DID that doesn't match its own NFT/chain is reported as invalid.
 | `getDid()` | `string` | The DDO's `id` (its DID). |
 | `getSchema(version?)` | `string` | The SHACL schema (Turtle) for a version; defaults to the DDO's own / `CURRENT_VERSION`. Throws on an unsupported version. |
 | `makeDid(nftAddress, chainId)` | `string` | Deterministic DID for the given NFT + chain. |
-| `validate()` | `Promise<[boolean, Record<string, string[]>]>` | SHACL-validate the DDO. Returns `[true, {}]` when it conforms, else `[false, errorsByField]`. |
+| `validate()` | `Promise<[boolean, Record<string, string[]>]>` | SHACL-validate the DDO. Returns `[true, {}]` when it conforms, else `[false, errorsByField]`. Rejects (throws) when the DDO's `version` has no bundled schema (e.g. `4.999.0`). |
 | `getDDOFields()` | `DDOFields \| CredentialSubject` | The core fields of the DDO (v5 returns the `credentialSubject`). |
 | `getAssetFields()` | `AssetFields` | Asset-level fields (name, metadata, services, …). |
 | `updateFields(fields)` | `Record<string, any>` | Immutably-ish apply a set of `UpdateFields` (id, nftAddress, chainId, datatokens, services, indexedMetadata, and for v5 issuer/proof) and return the updated data. |
@@ -176,8 +176,9 @@ DID that doesn't match its own NFT/chain is reported as invalid.
 
 ## Supported versions & schemas
 
-SHACL schemas ship with the package as Turtle files in [`schemas/`](./schemas) and are bundled
-into the build by the `generate:schemas` script (run automatically on `prebuild`):
+SHACL schemas are authored as Turtle files in [`schemas/`](./schemas) in the repository. The
+`generate:schemas` script (run automatically on `prebuild`) inlines them into the build, so the
+published package contains the schemas in its bundle but not the raw `.ttl` files:
 
 | Version | Schema file |
 |---|---|
@@ -217,7 +218,7 @@ For indexers that store DDOs in Elasticsearch, the package exports ready-made ma
 schema version) plus a combined array:
 
 ```ts
-import { ddoElasticMappings, ddoMappingV5_0_0, ElasticsearchMapping } from '@oceanprotocol/ddo-js'
+import { ddoElasticMappings, ddoMappingV5_0_0, type ElasticsearchMapping } from '@oceanprotocol/ddo-js'
 ```
 
 | Export | What it is |
