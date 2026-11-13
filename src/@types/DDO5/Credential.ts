@@ -1,8 +1,15 @@
 export type MATCH_RULES = 'any' | 'all';
 
+// An allow/deny address entry: a plain address string, or an object wrapping it
+// Use getCredentialAddresses() to read them.
+export interface CredentialAddressObject {
+  address: string;
+}
+export type CredentialAddressValue = string | CredentialAddressObject;
+
 export interface CredentialAddressBased {
   type: 'address';
-  values: string[];
+  values: CredentialAddressValue[];
 }
 
 export interface CredentialAccessListBased {

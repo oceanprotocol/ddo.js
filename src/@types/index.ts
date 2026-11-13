@@ -12,7 +12,12 @@ export { Algorithm as AlgorithmV5 } from './DDO5/Algorithm.js';
 export { Asset as AssetV5 } from './DDO5/Asset.js';
 export * from './DDO5/Compute.js';
 
-export { Credential as CredentialV5 } from './DDO5/Credential.js';
+export {
+  Credential as CredentialV5,
+  CredentialAddressBased as CredentialAddressBasedV5,
+  CredentialAddressObject,
+  CredentialAddressValue
+} from './DDO5/Credential.js';
 export * from './DDO5/CredentialSubject.js';
 export { Event as EventV5 } from './DDO5/Event.js';
 export { Metadata as MetadataV5 } from './DDO5/Metadata.js';
