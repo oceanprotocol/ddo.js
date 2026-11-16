@@ -1,4 +1,4 @@
-import { getAddress, sha256, toUtf8Bytes } from 'ethers';
+import { getAddress } from 'ethers';
 import { fromRdf } from 'rdf-literal';
 import { Parser as N3Parser, Store } from 'n3';
 import jsonld from 'jsonld';
@@ -16,17 +16,30 @@ import {
   VersionedDDO
 } from '../@types/index.js';
 import { getSHACLValidator } from '../utils/importUtils.js';
+import { stripIndexedMetadata, SUPPORTED_VERSIONS } from '../utils/ddo.js';
+import { DID_PREFIX_V4, DID_PREFIX_V5, hashDid } from '../utils/did.js';
 import { SCHEMAS } from '../schemas/index.js';
 
 const CURRENT_VERSION = '5.0.0';
-const ALLOWED_VERSIONS = [
-  '4.1.0',
-  '4.3.0',
-  '4.5.0',
-  '4.7.0',
-  '5.0.0',
-  'deprecated'
-];
+
+/**
+ * Creates an empty `indexedMetadata` when an update writes to it and the DDO
+ * has none, so `updateFields({ indexedMetadata: {} })` initialises it.
+ */
+function ensureIndexedMetadata(
+  data: Record<string, any>,
+  fields: UpdateFields
+): void {
+  if (
+    fields.indexedMetadata &&
+    typeof fields.indexedMetadata === 'object' &&
+    (typeof data.indexedMetadata !== 'object' || data.indexedMetadata === null)
+  ) {
+    data.indexedMetadata = {};
+  }
+}
+
+const ALLOWED_VERSIONS: readonly string[] = SUPPORTED_VERSIONS;
 
 export abstract class DDOManager {
   private ddoData: Record<string, any>;
@@ -137,6 +150,23 @@ export abstract class DDOManager {
   }
 
   /**
+   * Finds the first service whose datatoken address matches, ignoring letter case.
+   * @param datatokenAddress - The datatoken address.
+   * @returns The service, or `undefined` when not found.
+   */
+  public getServiceByDatatoken(
+    datatokenAddress: string
+  ): ServiceV4 | ServiceV5 | undefined {
+    if (typeof datatokenAddress !== 'string') return undefined;
+    const address = datatokenAddress.toLowerCase();
+    return this.getServiceList().find(
+      (service) =>
+        typeof service?.datatokenAddress === 'string' &&
+        service.datatokenAddress.toLowerCase() === address
+    );
+  }
+
+  /**
    * Returns the asset-level and service-level credentials, read from the right
    * v4/v5 path. The two are returned separately and never merged: how they
    * combine is an access rule left to the caller.
@@ -177,12 +207,7 @@ export abstract class DDOManager {
   public deleteIndexedMetadataIfExists(
     ddo: Record<string, any>
   ): Record<string, any> {
-    const ddoCopy: Record<string, any> = structuredClone(ddo);
-    if ('indexedMetadata' in ddoCopy) {
-      delete ddoCopy.indexedMetadata;
-      return ddoCopy;
-    }
-    return ddo;
+    return stripIndexedMetadata(ddo);
   }
 
   /**
@@ -306,9 +331,7 @@ export class V4DDO extends DDOManager {
   }
 
   makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:op:' + sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
-    );
+    return hashDid(DID_PREFIX_V4, nftAddress, chainId);
   }
 
   getDDOFields(): DDOFields {
@@ -332,6 +355,7 @@ export class V4DDO extends DDOManager {
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
+    ensureIndexedMetadata(this.getDDOData(), fields);
     if (fields.id) this.getDDOData().id = fields.id;
     if (fields.nftAddress) this.getDDOData().nftAddress = fields.nftAddress;
     if (fields.chainId) this.getDDOData().chainId = fields.chainId;
@@ -405,10 +429,7 @@ export class V5DDO extends DDOManager {
   }
 
   makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:ope:' +
-      sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
-    );
+    return hashDid(DID_PREFIX_V5, nftAddress, chainId);
   }
 
   getDDOFields(): CredentialSubject {
@@ -440,6 +461,7 @@ export class V5DDO extends DDOManager {
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
+    ensureIndexedMetadata(this.getDDOData(), fields);
     const credentialSubject = this.getDDOData().credentialSubject || {};
     if (fields.id) this.getDDOData().id = fields.id;
     if (fields.nftAddress) credentialSubject.nftAddress = fields.nftAddress;
@@ -544,9 +566,7 @@ export class DeprecatedDDO extends DDOManager {
   }
 
   makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:op:' + sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
-    );
+    return hashDid(DID_PREFIX_V4, nftAddress, chainId);
   }
 
   getDDOFields(): DDOFields {

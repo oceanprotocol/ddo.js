@@ -1,6 +1,12 @@
 import {
+  Credential as CredentialV4,
+  Credentials as CredentialsV4
+} from '../@types/DDO4/Credentials.js';
+import {
+  Credential as CredentialV5,
   CredentialAddressObject,
-  CredentialAddressValue
+  CredentialAddressValue,
+  Credentials as CredentialsV5
 } from '../@types/DDO5/Credential.js';
 
 /**
@@ -26,4 +32,147 @@ export function getCredentialAddresses(
     }
     return [];
   });
+}
+
+/** One allow/deny rule of a v4 or v5 DDO. */
+export type CredentialRule = CredentialV4 | CredentialV5;
+
+/** The `credentials` object of a v4 or v5 DDO or service. */
+export type CredentialRules = CredentialsV4 | CredentialsV5;
+
+/**
+ * Checks a rule that ddo.js cannot check itself, such as `accessList` (needs a
+ * chain call) or `verifiableCredential`.
+ * @returns `true` if the consumer matches, `false` if not, `null` when the rule
+ * type is unknown or unsupported. Errors thrown by the resolver propagate.
+ */
+export type CredentialResolver = (
+  credential: CredentialRule,
+  consumerAddress: string
+) => Promise<boolean | null> | boolean | null;
+
+/**
+ * Checks a consumer against an `address` rule, ignoring letter case.
+ * A `*` entry matches everyone; a rule without addresses matches no one.
+ */
+export function matchesAddressCredential(
+  credential: { values?: readonly CredentialAddressValue[] } | null | undefined,
+  consumerAddress: string
+): boolean {
+  if (typeof consumerAddress !== 'string') return false;
+  const addresses = getCredentialAddresses(credential).map((address) =>
+    address.toLowerCase()
+  );
+  if (addresses.length === 0) return false;
+  if (addresses.includes('*')) return true;
+  return addresses.includes(consumerAddress.toLowerCase());
+}
+
+/**
+ * Checks a consumer against one allow/deny rule. `address` rules (any letter
+ * case of the type) are checked here; every other type goes to `resolve`.
+ * @returns `true`/`false` for a match or no match, `null` for a malformed rule,
+ * or an unknown type when no resolver handles it.
+ */
+export async function evaluateCredential(
+  credential: CredentialRule,
+  consumerAddress: string,
+  resolve?: CredentialResolver
+): Promise<boolean | null> {
+  if (!credential || typeof credential.type !== 'string') return null;
+  if (credential.type.toLowerCase() === 'address') {
+    return matchesAddressCredential(
+      credential as { values?: readonly CredentialAddressValue[] },
+      consumerAddress
+    );
+  }
+  if (!resolve) return null;
+  return await resolve(credential, consumerAddress);
+}
+
+async function evaluateCredentialList(
+  list: readonly CredentialRule[],
+  consumerAddress: string,
+  matchRule: 'any' | 'all',
+  listType: 'allow' | 'deny',
+  resolve?: CredentialResolver
+): Promise<boolean> {
+  const results: boolean[] = [];
+  for (const credential of list) {
+    const result = await evaluateCredential(
+      credential,
+      consumerAddress,
+      resolve
+    );
+    if (result === null) {
+      // Unknown type in an allow list with match_allow 'all' denies access.
+      // Everywhere else unknown types are ignored.
+      if (listType === 'allow' && matchRule === 'all') return false;
+    } else {
+      results.push(result);
+    }
+  }
+  if (results.length === 0) return false;
+  return matchRule === 'any'
+    ? results.some((result) => result)
+    : results.every((result) => result);
+}
+
+/**
+ * Decides whether a consumer may access an asset or service, from its
+ * `credentials` rules. Same rules as ocean-node's `checkCredentials`:
+ * 1. No credentials: allow.
+ * 2. Deny list first, `match_deny` defaults to `'any'`: a match denies.
+ * 3. Allow list, `match_allow` defaults to `'all'`: the result decides.
+ *    With `'all'`, an unknown rule type denies; with `'any'` it is ignored.
+ * 4. No allow list: allow.
+ * Unknown types in the deny list are ignored. A deny or allow list that is set
+ * but is not an array denies access.
+ * @param consumerAddress - The consumer address.
+ * @param credentials - The asset-level or service-level `credentials`.
+ * @param resolve - Checks rule types other than `address`, e.g. `accessList`.
+ * @throws TypeError when `consumerAddress` is not a string.
+ */
+export async function evaluateCredentials(
+  consumerAddress: string,
+  credentials: CredentialRules | null | undefined,
+  resolve?: CredentialResolver
+): Promise<boolean> {
+  if (typeof consumerAddress !== 'string') {
+    throw new TypeError('evaluateCredentials expects a consumer address');
+  }
+  if (credentials === undefined || credentials === null) return true;
+  const { allow, deny } = credentials;
+  const matchDeny = credentials.match_deny || 'any';
+  const matchAllow = credentials.match_allow || 'all';
+
+  if (deny !== undefined && deny !== null) {
+    if (!Array.isArray(deny)) return false;
+    if (
+      deny.length > 0 &&
+      (await evaluateCredentialList(
+        deny,
+        consumerAddress,
+        matchDeny,
+        'deny',
+        resolve
+      ))
+    ) {
+      return false;
+    }
+  }
+
+  if (allow !== undefined && allow !== null) {
+    if (!Array.isArray(allow)) return false;
+    if (allow.length > 0) {
+      return evaluateCredentialList(
+        allow,
+        consumerAddress,
+        matchAllow,
+        'allow',
+        resolve
+      );
+    }
+  }
+  return true;
 }
