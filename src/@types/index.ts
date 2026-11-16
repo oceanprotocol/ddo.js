@@ -16,7 +16,8 @@ export {
   Credential as CredentialV5,
   CredentialAddressBased as CredentialAddressBasedV5,
   CredentialAddressObject,
-  CredentialAddressValue
+  CredentialAddressValue,
+  Credentials as CredentialsV5
 } from './DDO5/Credential.js';
 export * from './DDO5/CredentialSubject.js';
 export { Event as EventV5 } from './DDO5/Event.js';

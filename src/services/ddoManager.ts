@@ -3,8 +3,11 @@ import { fromRdf } from 'rdf-literal';
 import { Parser as N3Parser, Store } from 'n3';
 import jsonld from 'jsonld';
 import { AssetFields } from '../@types/AssetTypes.js';
+import { Credentials as CredentialsV4 } from '../@types/DDO4/Credentials.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
+import { Credentials as CredentialsV5 } from '../@types/DDO5/Credential.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
+import { State } from '../@types/DDO5/State.js';
 import {
   CredentialSubject,
   DDOFields,
@@ -93,6 +96,82 @@ export abstract class DDOManager {
    */
   public getDid(): string {
     return this.getDDOData().id || null;
+  }
+
+  /**
+   * Returns the services of the DDO, or an empty array when there are none.
+   */
+  private getServiceList(): (ServiceV4 | ServiceV5)[] {
+    const services: unknown = this.getDDOFields()?.services;
+    return Array.isArray(services) ? services : [];
+  }
+
+  /**
+   * Finds a service by its id.
+   * @param id - The service id.
+   * @returns The service, or `undefined` when not found.
+   */
+  public getService(id: string): ServiceV4 | ServiceV5 | undefined {
+    if (typeof id !== 'string') return undefined;
+    return this.getServiceList().find((service) => service?.id === id);
+  }
+
+  /**
+   * Finds the position of a service by its id.
+   * @param id - The service id.
+   * @returns The index of the service, or `-1` when not found.
+   */
+  public getServiceIndex(id: string): number {
+    if (typeof id !== 'string') return -1;
+    return this.getServiceList().findIndex((service) => service?.id === id);
+  }
+
+  /**
+   * Returns the service at a given position.
+   * @param index - The service index.
+   * @returns The service, or `undefined` when the index is out of range.
+   */
+  public getServiceByIndex(index: number): ServiceV4 | ServiceV5 | undefined {
+    if (!Number.isInteger(index) || index < 0) return undefined;
+    return this.getServiceList()[index] ?? undefined;
+  }
+
+  /**
+   * Returns the asset-level and service-level credentials, read from the right
+   * v4/v5 path. The two are returned separately and never merged: how they
+   * combine is an access rule left to the caller.
+   * The returned objects belong to the DDO; do not mutate them.
+   * @param serviceId - The service id. When omitted, `service` is `undefined`.
+   * @returns `asset` and `service` credentials, `undefined` when absent.
+   */
+  public getCredentials(serviceId?: string): {
+    asset: CredentialsV4 | CredentialsV5 | undefined;
+    service: CredentialsV4 | CredentialsV5 | undefined;
+  } {
+    // CredentialSubject and the v5 Service type the credentials as an array, but
+    // the DDO holds a `{ allow, deny, match_allow, match_deny }` object.
+    const asset = (this.getDDOFields()?.credentials ?? undefined) as unknown as
+      CredentialsV4 | CredentialsV5 | undefined;
+    const service = (serviceId === undefined
+      ? undefined
+      : (this.getService(serviceId)?.credentials ?? undefined)) as unknown as
+      CredentialsV4 | CredentialsV5 | undefined;
+    return { asset, service };
+  }
+
+  /**
+   * Checks whether the NFT state allows ordering: Active (0) or Unlisted (5).
+   * Returns `false` when `indexedMetadata.nft.state` is missing.
+   *
+   * `indexedMetadata` is written by the indexer, not the publisher. A DDO handed
+   * in by a client can claim any state, so only a DDO read from a trusted
+   * indexer gives a trustworthy answer.
+   * @returns `true` if the asset can be ordered.
+   */
+  public isOrderable(): boolean {
+    // Read the raw data: DeprecatedDDO.getAssetFields() mutates indexedMetadata.
+    const state: unknown = this.getDDOData()?.indexedMetadata?.nft?.state;
+    return state === State.Active || state === State.AssetUnlisted;
   }
 
   public deleteIndexedMetadataIfExists(
