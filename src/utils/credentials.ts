@@ -176,3 +176,16 @@ export async function evaluateCredentials(
   }
   return true;
 }
+
+/**
+ * Result of `DDOManager.isConsumerAllowed`. When access is refused, `level`
+ * says which credentials refused it, and `reason` whether the consumer was
+ * denied or the service does not exist.
+ */
+export type ConsumerAccess =
+  | { allowed: true }
+  | {
+      allowed: false;
+      level: 'asset' | 'service';
+      reason: 'denied' | 'service-not-found';
+    };

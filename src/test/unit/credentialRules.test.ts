@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { DDOManager } from '../../services/ddoManager.js';
 import {
   CredentialResolver,
   CredentialRule,
@@ -6,6 +7,7 @@ import {
   evaluateCredentials,
   matchesAddressCredential
 } from '../../utils/credentials.js';
+import { DDOExampleV4, DDOExampleV5, deprecatedDDO } from '../data/ddo.js';
 
 const ALICE = '0xAbC0000000000000000000000000000000000001';
 const BOB = '0x0000000000000000000000000000000000000002';
@@ -169,6 +171,127 @@ describe('evaluateCredentials', () => {
     let error: Error | undefined;
     try {
       await evaluateCredentials(undefined as any, {});
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error).to.be.instanceOf(TypeError);
+  });
+});
+
+describe('DDOManager.isConsumerAllowed', () => {
+  const v4 = (
+    assetCredentials: any,
+    serviceCredentials?: any
+  ): Record<string, any> => {
+    const ddo: Record<string, any> = structuredClone(DDOExampleV4);
+    ddo.credentials = assetCredentials;
+    ddo.services = [
+      { ...ddo.services[0], id: 'svc', credentials: serviceCredentials }
+    ];
+    return ddo;
+  };
+  const v5 = (
+    assetCredentials: any,
+    serviceCredentials?: any
+  ): Record<string, any> => {
+    const ddo: Record<string, any> = structuredClone(DDOExampleV5);
+    ddo.credentialSubject.credentials = assetCredentials;
+    ddo.credentialSubject.services = [
+      {
+        ...ddo.credentialSubject.services[0],
+        id: 'svc',
+        credentials: serviceCredentials
+      }
+    ];
+    // Root fields are ignored for v5.
+    ddo.credentials = { deny: [address('*')] };
+    return ddo;
+  };
+
+  for (const [label, make] of [
+    ['v4', v4],
+    ['v5', v5]
+  ] as const) {
+    it(`allows without credentials (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(make(undefined, undefined));
+      expect(await ddo.isConsumerAllowed(BOB, 'svc')).to.deep.equal({
+        allowed: true
+      });
+    });
+
+    it(`refuses at asset level first (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(
+        make({ deny: [address(BOB)] }, { allow: [address(BOB)] })
+      );
+      expect(await ddo.isConsumerAllowed(BOB, 'svc')).to.deep.equal({
+        allowed: false,
+        level: 'asset',
+        reason: 'denied'
+      });
+    });
+
+    it(`refuses at service level (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(
+        make({ allow: [address('*')] }, { allow: [address(ALICE)] })
+      );
+      expect(await ddo.isConsumerAllowed(BOB, 'svc')).to.deep.equal({
+        allowed: false,
+        level: 'service',
+        reason: 'denied'
+      });
+      expect(await ddo.isConsumerAllowed(ALICE, 'svc')).to.deep.equal({
+        allowed: true
+      });
+    });
+
+    it(`checks only the asset without a serviceId (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(
+        make({ allow: [address(BOB)] }, { deny: [address(BOB)] })
+      );
+      expect(await ddo.isConsumerAllowed(BOB)).to.deep.equal({
+        allowed: true
+      });
+    });
+
+    it(`reports an unknown service (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(make(undefined, undefined));
+      expect(await ddo.isConsumerAllowed(BOB, 'missing')).to.deep.equal({
+        allowed: false,
+        level: 'service',
+        reason: 'service-not-found'
+      });
+    });
+
+    it(`passes the resolver to both levels (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(
+        make({ allow: [accessList()] }, { allow: [accessList()] })
+      );
+      expect(await ddo.isConsumerAllowed(ALICE, 'svc', resolver)).to.deep.equal(
+        { allowed: true }
+      );
+      expect(await ddo.isConsumerAllowed(BOB, 'svc', resolver)).to.deep.equal({
+        allowed: false,
+        level: 'asset',
+        reason: 'denied'
+      });
+    });
+  }
+
+  it('refuses any service of a deprecated DDO, which has none', async () => {
+    const ddo = DDOManager.getDDOClass(structuredClone(deprecatedDDO));
+    expect(await ddo.isConsumerAllowed(BOB)).to.deep.equal({ allowed: true });
+    expect(await ddo.isConsumerAllowed(BOB, 'svc')).to.deep.equal({
+      allowed: false,
+      level: 'service',
+      reason: 'service-not-found'
+    });
+  });
+
+  it('rejects a consumer address that is not a string', async () => {
+    const ddo = DDOManager.getDDOClass(v4(undefined));
+    let error: Error | undefined;
+    try {
+      await ddo.isConsumerAllowed(undefined as any, 'svc');
     } catch (e) {
       error = e as Error;
     }

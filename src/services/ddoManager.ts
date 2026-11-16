@@ -17,6 +17,11 @@ import {
 } from '../@types/index.js';
 import { getSHACLValidator } from '../utils/importUtils.js';
 import { stripIndexedMetadata, SUPPORTED_VERSIONS } from '../utils/ddo.js';
+import {
+  ConsumerAccess,
+  CredentialResolver,
+  evaluateCredentials
+} from '../utils/credentials.js';
 import { DID_PREFIX_V4, DID_PREFIX_V5, hashDid } from '../utils/did.js';
 import { SCHEMAS } from '../schemas/index.js';
 
@@ -187,6 +192,42 @@ export abstract class DDOManager {
       : (this.getService(serviceId)?.credentials ?? undefined)) as unknown as
       CredentialsV4 | CredentialsV5 | undefined;
     return { asset, service };
+  }
+
+  /**
+   * Decides whether a consumer may access the asset and, when `serviceId` is
+   * given, that service: the asset-level credentials are checked first, then the
+   * service-level ones. Both must allow. Missing credentials allow.
+   * Same order as ocean-node's download and compute handlers.
+   * @param consumerAddress - The consumer address.
+   * @param serviceId - The service id. Omit for an asset-level check only.
+   * @param resolve - Checks rule types other than `address`, e.g. `accessList`.
+   * @returns `{ allowed: true }`, or the level and reason of the refusal.
+   * @throws TypeError when `consumerAddress` is not a string. Resolver errors
+   * propagate.
+   */
+  public async isConsumerAllowed(
+    consumerAddress: string,
+    serviceId?: string,
+    resolve?: CredentialResolver
+  ): Promise<ConsumerAccess> {
+    if (typeof consumerAddress !== 'string') {
+      throw new TypeError('isConsumerAllowed expects a consumer address');
+    }
+    const { asset } = this.getCredentials();
+    if (!(await evaluateCredentials(consumerAddress, asset, resolve))) {
+      return { allowed: false, level: 'asset', reason: 'denied' };
+    }
+    if (serviceId === undefined) return { allowed: true };
+
+    if (!this.getService(serviceId)) {
+      return { allowed: false, level: 'service', reason: 'service-not-found' };
+    }
+    const { service } = this.getCredentials(serviceId);
+    if (!(await evaluateCredentials(consumerAddress, service, resolve))) {
+      return { allowed: false, level: 'service', reason: 'denied' };
+    }
+    return { allowed: true };
   }
 
   /**
