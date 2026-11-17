@@ -116,6 +116,38 @@ describe('evaluateCredentials', () => {
     ).to.be.false;
   });
 
+  it('denies a match mode other than any or all, keeps the default when unset', async () => {
+    // With 'ANY' mapped to every(), ALICE matching one of two deny rules would
+    // not be blocked and the allow list would grant access.
+    const deny = [address(ALICE), address(BOB)];
+    const allow = [address('*')];
+    for (const mode of ['ANY', 'All', 'some', 1, true]) {
+      expect(
+        await evaluateCredentials(ALICE, {
+          deny,
+          allow,
+          match_deny: mode
+        } as any),
+        `match_deny ${mode}`
+      ).to.be.false;
+      expect(
+        await evaluateCredentials(ALICE, { allow, match_allow: mode } as any),
+        `match_allow ${mode}`
+      ).to.be.false;
+    }
+    for (const unset of [undefined, null, '']) {
+      expect(
+        await evaluateCredentials(BOB, {
+          deny: [address(ALICE)],
+          allow,
+          match_deny: unset,
+          match_allow: unset
+        } as any),
+        `unset ${unset}`
+      ).to.be.true;
+    }
+  });
+
   it('match_allow defaults to all, any needs one rule to match', async () => {
     const allow = [address(ALICE), address(BOB)];
     expect(await evaluateCredentials(ALICE, { allow })).to.be.false;

@@ -79,9 +79,7 @@ describe('DDOManager Validation Tests', () => {
             };
       const shortDdo = buildShortDdo(fullDdo, 8996, 2);
       expect(shortDdo.id).to.equal(id);
-      const validationResult = await validateDDO(
-        shortDdo as unknown as Record<string, unknown>
-      );
+      const validationResult = await validateDDO(shortDdo);
       expect(validationResult, `v${version}`).to.eql([true, {}]);
     }
   });

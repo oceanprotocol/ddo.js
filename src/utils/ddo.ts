@@ -88,13 +88,15 @@ export function isShortDdo(ddo: unknown): boolean {
 }
 
 /** The stub stored in place of a DDO whose NFT is no longer active. */
-export interface ShortDdo {
+// A type alias, not an interface, so it is assignable to Record<string, unknown>
+// and can be passed straight to validateDDO.
+export type ShortDdo = {
   id: string;
   version: 'deprecated';
   chainId: number;
   nftAddress: string | undefined;
   indexedMetadata: { nft: { state: number } };
-}
+};
 
 /**
  * Builds the short DDO stored when an asset's metadata state leaves active.

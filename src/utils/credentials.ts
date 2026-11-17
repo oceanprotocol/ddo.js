@@ -118,6 +118,9 @@ async function evaluateCredentialList(
     : results.every((result) => result);
 }
 
+const isMatchRule = (value: unknown): value is 'any' | 'all' =>
+  value === 'any' || value === 'all';
+
 /**
  * Decides whether a consumer may access an asset or service, from its
  * `credentials` rules. Same rules as ocean-node's `checkCredentials`:
@@ -128,7 +131,8 @@ async function evaluateCredentialList(
  * 4. No allow list: allow.
  * Unknown types in the deny list are ignored. A `credentials` value that is set
  * but is not a plain object (an array or a scalar) denies access, as does a
- * deny or allow list that is set but is not an array (`null` included).
+ * deny or allow list that is set but is not an array (`null` included), or a
+ * `match_deny` / `match_allow` other than `'any'` or `'all'` (e.g. `'ANY'`).
  * @param consumerAddress - The consumer address.
  * @param credentials - The asset-level or service-level `credentials`.
  * @param resolve - Checks rule types other than `address`, e.g. `accessList`.
@@ -149,8 +153,12 @@ export async function evaluateCredentials(
   const container: unknown = credentials;
   if (typeof container !== 'object' || Array.isArray(container)) return false;
   const { allow, deny } = credentials;
-  const matchDeny = credentials.match_deny || 'any';
-  const matchAllow = credentials.match_allow || 'all';
+  // An unset mode (undefined, null or '') takes the default. Any other value
+  // than 'any' or 'all' is malformed and denies: mapping it to one of them
+  // could silently turn a deny list off.
+  const matchDeny: unknown = credentials.match_deny || 'any';
+  const matchAllow: unknown = credentials.match_allow || 'all';
+  if (!isMatchRule(matchDeny) || !isMatchRule(matchAllow)) return false;
 
   // A list that is set but is not an array (including `null`) denies access; a
   // list that is absent (`undefined`) is treated as no restriction.
