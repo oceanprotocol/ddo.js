@@ -153,11 +153,11 @@ export async function evaluateCredentials(
   const container: unknown = credentials;
   if (typeof container !== 'object' || Array.isArray(container)) return false;
   const { allow, deny } = credentials;
-  // An unset mode (undefined, null or '') takes the default. Any other value
-  // than 'any' or 'all' is malformed and denies: mapping it to one of them
-  // could silently turn a deny list off.
-  const matchDeny: unknown = credentials.match_deny || 'any';
-  const matchAllow: unknown = credentials.match_allow || 'all';
+  // Only an absent mode takes the default. Invalid supplied modes deny access.
+  const matchDeny: unknown =
+    credentials.match_deny === undefined ? 'any' : credentials.match_deny;
+  const matchAllow: unknown =
+    credentials.match_allow === undefined ? 'all' : credentials.match_allow;
   if (!isMatchRule(matchDeny) || !isMatchRule(matchAllow)) return false;
 
   // A list that is set but is not an array (including `null`) denies access; a

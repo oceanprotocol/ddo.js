@@ -121,7 +121,7 @@ describe('evaluateCredentials', () => {
     // not be blocked and the allow list would grant access.
     const deny = [address(ALICE), address(BOB)];
     const allow = [address('*')];
-    for (const mode of ['ANY', 'All', 'some', 1, true]) {
+    for (const mode of ['ANY', 'All', 'some', 1, true, null, '', false, 0]) {
       expect(
         await evaluateCredentials(ALICE, {
           deny,
@@ -135,17 +135,14 @@ describe('evaluateCredentials', () => {
         `match_allow ${mode}`
       ).to.be.false;
     }
-    for (const unset of [undefined, null, '']) {
-      expect(
-        await evaluateCredentials(BOB, {
-          deny: [address(ALICE)],
-          allow,
-          match_deny: unset,
-          match_allow: unset
-        } as any),
-        `unset ${unset}`
-      ).to.be.true;
-    }
+    expect(
+      await evaluateCredentials(BOB, {
+        deny: [address(ALICE)],
+        allow,
+        match_deny: undefined,
+        match_allow: undefined
+      })
+    ).to.be.true;
   });
 
   it('match_allow defaults to all, any needs one rule to match', async () => {
