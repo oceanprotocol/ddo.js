@@ -96,7 +96,8 @@ export async function evaluateAlgorithmTrust(
       matches(entry.did, algorithmDid) &&
       matches(entry.filesChecksum, checksums?.files) &&
       matches(entry.containerSectionChecksum, checksums?.container);
-    if ('serviceId' in entry) {
+    // `serviceId: undefined` is the same as no serviceId, as in addTrustedAlgorithm
+    if (entry.serviceId !== undefined) {
       return matched && matches(entry.serviceId, checksums?.serviceId);
     }
     return matched;

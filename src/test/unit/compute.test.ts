@@ -153,6 +153,23 @@ describe('evaluateAlgorithmTrust', () => {
     ).to.be.true;
   });
 
+  it('treats serviceId: undefined like an entry without serviceId', async () => {
+    const withoutKey = trusted();
+    const undefinedKey = trusted({ serviceId: undefined });
+    expect('serviceId' in withoutKey).to.be.false;
+    expect('serviceId' in undefinedKey).to.be.true;
+    for (const entry of [withoutKey, undefinedKey]) {
+      expect(
+        await evaluateAlgorithmTrust(
+          computeService({ publisherTrustedAlgorithms: [entry] }),
+          ALGO_DID,
+          CHECKSUMS,
+          neverCalled
+        )
+      ).to.be.true;
+    }
+  });
+
   it('trusts every publisher with *, without resolving', async () => {
     const service = computeService({
       publisherTrustedAlgorithmPublishers: ['*']
