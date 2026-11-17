@@ -12,7 +12,10 @@ describe('DDOManager', () => {
     let ddoInstance: V4DDO;
 
     beforeEach(() => {
-      ddoInstance = DDOManager.getDDOClass(DDOExampleV4) as V4DDO;
+      // clone: updateFields mutates the DDO, and the fixture is shared
+      ddoInstance = DDOManager.getDDOClass(
+        structuredClone(DDOExampleV4)
+      ) as V4DDO;
     });
 
     it('should return a valid DID for V4 DDO', () => {
@@ -55,7 +58,10 @@ describe('DDOManager', () => {
     let ddoInstance: V5DDO;
 
     beforeEach(() => {
-      ddoInstance = DDOManager.getDDOClass(DDOExampleV5) as V5DDO;
+      // clone: updateFields mutates the DDO, and the fixture is shared
+      ddoInstance = DDOManager.getDDOClass(
+        structuredClone(DDOExampleV5)
+      ) as V5DDO;
     });
 
     it('should return a valid DID for V5 DDO', () => {
@@ -128,7 +134,10 @@ describe('DDOManager', () => {
     let ddoInstance: DeprecatedDDO;
 
     beforeEach(() => {
-      ddoInstance = DDOManager.getDDOClass(deprecatedDDO) as DeprecatedDDO;
+      // clone: updateFields mutates the DDO, and the fixture is shared
+      ddoInstance = DDOManager.getDDOClass(
+        structuredClone(deprecatedDDO)
+      ) as DeprecatedDDO;
     });
 
     it('should return a valid DID for Deprecated DDO', () => {

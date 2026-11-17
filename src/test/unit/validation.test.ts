@@ -20,8 +20,6 @@ import { buildShortDdo } from '../../utils/ddo.js';
 import { deriveDid } from '../../utils/did.js';
 
 const SHORT_NFT = '0xBB1081DbF3227bbB233Db68f7117114baBb43656';
-// Other suites mutate the shared fixture, so keep the copy taken at import time.
-const DEPRECATED_DDO = structuredClone(deprecatedDDO);
 
 describe('DDOManager Validation Tests', () => {
   it('should validate a valid V4 DDO successfully', async () => {
@@ -43,8 +41,20 @@ describe('DDOManager Validation Tests', () => {
     expect(validationResult[1]).to.eql({});
   });
 
+  it('should fail V4 and V5 DDO validation for an id not derived from the NFT', async () => {
+    const v4 = structuredClone(DDOExampleV4) as Record<string, any>;
+    v4.id = 'did:op:' + 'a'.repeat(64);
+    const v5 = structuredClone(DDOExampleV5) as Record<string, any>;
+    v5.id = 'did:ope:' + 'a'.repeat(64);
+    for (const ddo of [v4, v5]) {
+      const validationResult = await validateDDO(ddo);
+      expect(validationResult[0], ddo.version).to.eql(false);
+      expect(validationResult[1], ddo.version).to.have.property('id');
+    }
+  });
+
   it('should validate a Deprecated DDO (short DDO)', async () => {
-    const validationResult = await validateDDO(structuredClone(DEPRECATED_DDO));
+    const validationResult = await validateDDO(structuredClone(deprecatedDDO));
     expect(validationResult[0]).to.eql(true);
     expect(validationResult[1]).to.eql({});
   });
@@ -84,17 +94,17 @@ describe('DDOManager Validation Tests', () => {
     );
     for (const id of [
       otherNft,
-      DEPRECATED_DDO.id.toUpperCase().replace('DID:OP:', 'did:op:'),
+      deprecatedDDO.id.toUpperCase().replace('DID:OP:', 'did:op:'),
       'did:op:123'
     ]) {
-      const validationResult = await validateDDO({ ...DEPRECATED_DDO, id });
+      const validationResult = await validateDDO({ ...deprecatedDDO, id });
       expect(validationResult[0], id).to.eql(false);
       expect(validationResult[1], id).to.have.property('id');
     }
   });
 
   it('should fail Deprecated DDO validation without chainId, without throwing', async () => {
-    const { chainId, ...withoutChainId } = DEPRECATED_DDO;
+    const { chainId, ...withoutChainId } = deprecatedDDO;
     expect(chainId).to.equal(137);
     const validationResult = await validateDDO(withoutChainId);
     expect(validationResult[0]).to.eql(false);

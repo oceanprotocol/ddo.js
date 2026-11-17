@@ -473,11 +473,13 @@ export class V4DDO extends DDOManager {
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
     if (!report) return [false, extraErrors];
 
-    if (report.conforms) return [true, {}];
-
-    this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
-    extraErrors.fullReport = report.dataset.toString();
-    return [false, extraErrors];
+    // The checks above (chainId, nftAddress, id) count even when SHACL conforms.
+    if (!report.conforms) {
+      this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
+      extraErrors.fullReport = report.dataset.toString();
+    }
+    if (Object.keys(extraErrors).length > 0) return [false, extraErrors];
+    return [true, {}];
   }
 }
 
@@ -614,11 +616,13 @@ export class V5DDO extends DDOManager {
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
     if (!report) return [false, extraErrors];
 
-    if (report.conforms) return [true, {}];
-
-    this.collectShaclViolations(report.results, extraErrors, VC_VOCAB);
-    extraErrors.fullReport = report.dataset.toString();
-    return [false, extraErrors];
+    // The checks above (chainId, nftAddress, id) count even when SHACL conforms.
+    if (!report.conforms) {
+      this.collectShaclViolations(report.results, extraErrors, VC_VOCAB);
+      extraErrors.fullReport = report.dataset.toString();
+    }
+    if (Object.keys(extraErrors).length > 0) return [false, extraErrors];
+    return [true, {}];
   }
 }
 
