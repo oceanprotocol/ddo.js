@@ -253,6 +253,32 @@ describe('DDOManager.isConsumerAllowed', () => {
       });
     });
 
+    it(`refuses falsy malformed credentials (${label})`, async () => {
+      for (const malformed of [false, 0, '']) {
+        expect(
+          await DDOManager.getDDOClass(
+            make(malformed, undefined)
+          ).isConsumerAllowed(BOB, 'svc')
+        ).to.deep.equal({ allowed: false, level: 'asset', reason: 'denied' });
+        expect(
+          await DDOManager.getDDOClass(
+            make(undefined, malformed)
+          ).isConsumerAllowed(BOB, 'svc')
+        ).to.deep.equal({
+          allowed: false,
+          level: 'service',
+          reason: 'denied'
+        });
+      }
+    });
+
+    it(`allows null credentials (${label})`, async () => {
+      const ddo = DDOManager.getDDOClass(make(null, null));
+      expect(await ddo.isConsumerAllowed(BOB, 'svc')).to.deep.equal({
+        allowed: true
+      });
+    });
+
     it(`reports an unknown service (${label})`, async () => {
       const ddo = DDOManager.getDDOClass(make(undefined, undefined));
       expect(await ddo.isConsumerAllowed(BOB, 'missing')).to.deep.equal({

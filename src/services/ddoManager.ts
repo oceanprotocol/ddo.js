@@ -109,6 +109,16 @@ export abstract class DDOManager {
   }
 
   /**
+   * Reads the raw asset-level credentials from the right v4/v5 path, without
+   * the `|| null` normalization of `getDDOFields()`, so malformed falsy values
+   * (`false`, `0`, `""`) reach the credential evaluator and are refused.
+   * A deprecated DDO has no credentials.
+   */
+  protected getRawAssetCredentials(): unknown {
+    return undefined;
+  }
+
+  /**
    * Method to retrieve the DID.
    * @returns The DID of ddo.
    */
@@ -183,9 +193,8 @@ export abstract class DDOManager {
     asset: CredentialsV4 | CredentialsV5 | undefined;
     service: CredentialsV4 | CredentialsV5 | undefined;
   } {
-    // CredentialSubject and the v5 Service type the credentials as an array, but
-    // the DDO holds a `{ allow, deny, match_allow, match_deny }` object.
-    const asset = (this.getDDOFields()?.credentials ?? undefined) as unknown as
+    // Malformed values are returned as they are, so the evaluator refuses them.
+    const asset = (this.getRawAssetCredentials() ?? undefined) as
       CredentialsV4 | CredentialsV5 | undefined;
     const service = (serviceId === undefined
       ? undefined
@@ -388,6 +397,10 @@ export class V4DDO extends DDOManager {
     };
   }
 
+  protected getRawAssetCredentials(): unknown {
+    return this.getDDOData().credentials;
+  }
+
   getAssetFields(): AssetFields {
     return {
       indexedMetadata: this.getDDOData().indexedMetadata,
@@ -484,6 +497,10 @@ export class V5DDO extends DDOManager {
       credentials: data.credentialSubject?.credentials || null,
       nftAddress: data.credentialSubject?.nftAddress || null
     };
+  }
+
+  protected getRawAssetCredentials(): unknown {
+    return this.getDDOData().credentialSubject?.credentials;
   }
 
   getAssetFields(): AssetFields {

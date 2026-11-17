@@ -40,8 +40,10 @@ function getComputeSection(service: unknown): Record<string, any> | undefined {
   return isRecord(compute) ? compute : undefined;
 }
 
+// A missing or non-string rule never matches, so an entry without a checksum
+// is not trusted even when the checksum passed in is missing too.
 const matches = (rule: unknown, value: unknown): boolean =>
-  rule === '*' || rule === value;
+  rule === '*' || (typeof rule === 'string' && rule === value);
 
 /**
  * Decides whether an algorithm may run on a dataset service. Same rules as
@@ -51,8 +53,8 @@ const matches = (rule: unknown, value: unknown): boolean =>
  * - with no trusted algorithms and no trusted publishers, nothing is allowed;
  * - a published algorithm is allowed when it matches a trusted algorithm entry
  *   (did, files and container checksums, and serviceId when the entry has one;
- *   `*` matches anything), or when its NFT address is a trusted publisher
- *   (`*` trusts every publisher);
+ *   `*` matches anything, a missing value nothing), or when its NFT address is
+ *   a trusted publisher (`*` trusts every publisher);
  * - a raw algorithm (no DID) is allowed only with `allowRawAlgorithm`.
  * When publishers are listed without `*` and the algorithm's DDO cannot be
  * resolved, the algorithm is refused, even if it matched a trusted entry.
@@ -124,8 +126,10 @@ export async function evaluateAlgorithmTrust(
 
 /**
  * Adds an algorithm to a compute service's `publisherTrustedAlgorithms`,
- * creating the list when missing. An existing entry with the same `did` and
- * `serviceId` is replaced instead of duplicated. Mutates the service.
+ * creating the list when missing. Existing entries with the same `did` and
+ * `serviceId` are replaced by the new entry, at the position of the first one,
+ * so duplicates left by older tools cannot keep an old checksum trusted.
+ * Mutates the service.
  * @returns The updated list.
  * @throws TypeError when the service is not a compute service with a `compute`
  * section, or the entry has no string `did`.
@@ -145,14 +149,19 @@ export function addTrustedAlgorithm(
     compute.publisherTrustedAlgorithms = [];
   }
   const list: TrustedAlgorithm[] = compute.publisherTrustedAlgorithms;
-  const index = list.findIndex(
-    (existing) =>
-      isRecord(existing) &&
-      existing.did === entry.did &&
-      existing.serviceId === entry.serviceId
-  );
-  if (index === -1) list.push(entry);
-  else list[index] = entry;
+  const isSame = (existing: unknown): boolean =>
+    isRecord(existing) &&
+    existing.did === entry.did &&
+    existing.serviceId === entry.serviceId;
+  const index = list.findIndex(isSame);
+  if (index === -1) {
+    list.push(entry);
+    return list;
+  }
+  list[index] = entry;
+  for (let i = list.length - 1; i > index; i--) {
+    if (isSame(list[i])) list.splice(i, 1);
+  }
   return list;
 }
 

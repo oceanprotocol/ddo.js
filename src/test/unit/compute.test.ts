@@ -204,6 +204,30 @@ describe('evaluateAlgorithmTrust', () => {
     ).to.be.false;
   });
 
+  it('does not trust an entry with missing checksums', async () => {
+    const service = computeService({
+      publisherTrustedAlgorithms: [{ did: ALGO_DID }]
+    });
+    for (const checksums of [{}, CHECKSUMS] as AlgorithmChecksums[]) {
+      expect(
+        await evaluateAlgorithmTrust(service, ALGO_DID, checksums, neverCalled)
+      ).to.be.false;
+    }
+    const wildcard = computeService({
+      publisherTrustedAlgorithms: [
+        { did: ALGO_DID, filesChecksum: '*', containerSectionChecksum: '*' }
+      ]
+    });
+    expect(
+      await evaluateAlgorithmTrust(
+        wildcard,
+        ALGO_DID,
+        {} as AlgorithmChecksums,
+        neverCalled
+      )
+    ).to.be.true;
+  });
+
   it('does not trust a null publisher entry when the NFT address is missing', async () => {
     const service = computeService({
       publisherTrustedAlgorithmPublishers: [null]
@@ -241,6 +265,30 @@ describe('addTrustedAlgorithm', () => {
       trusted({ serviceId: 's1', filesChecksum: 'new' }),
       trusted({ serviceId: 's2' })
     ]);
+  });
+
+  it('collapses older duplicates so the old checksum is no longer trusted', async () => {
+    const old = trusted({ serviceId: 's1', filesChecksum: 'old' });
+    const other = trusted({ serviceId: 's2' });
+    const service = computeService({
+      publisherTrustedAlgorithms: [{ ...old }, other, { ...old }]
+    });
+    addTrustedAlgorithm(
+      service,
+      trusted({ serviceId: 's1', filesChecksum: 'new' })
+    );
+    expect(service.compute.publisherTrustedAlgorithms).to.deep.equal([
+      trusted({ serviceId: 's1', filesChecksum: 'new' }),
+      other
+    ]);
+    expect(
+      await evaluateAlgorithmTrust(
+        service,
+        ALGO_DID,
+        { ...CHECKSUMS, files: 'old', serviceId: 's1' },
+        neverCalled
+      )
+    ).to.be.false;
   });
 
   it('rejects a non-compute service or an entry without did', () => {
