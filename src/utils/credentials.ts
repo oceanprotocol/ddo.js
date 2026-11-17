@@ -126,8 +126,9 @@ async function evaluateCredentialList(
  * 3. Allow list, `match_allow` defaults to `'all'`: the result decides.
  *    With `'all'`, an unknown rule type denies; with `'any'` it is ignored.
  * 4. No allow list: allow.
- * Unknown types in the deny list are ignored. A deny or allow list that is set
- * but is not an array denies access.
+ * Unknown types in the deny list are ignored. A `credentials` value that is set
+ * but is not a plain object (an array or a scalar) denies access, as does a
+ * deny or allow list that is set but is not an array (`null` included).
  * @param consumerAddress - The consumer address.
  * @param credentials - The asset-level or service-level `credentials`.
  * @param resolve - Checks rule types other than `address`, e.g. `accessList`.
@@ -142,11 +143,18 @@ export async function evaluateCredentials(
     throw new TypeError('evaluateCredentials expects a consumer address');
   }
   if (credentials === undefined || credentials === null) return true;
+  // A set credentials value that is not a plain object (an array, as v5's
+  // published `Credential[]` type allows, or a scalar) cannot carry allow/deny
+  // lists, so it is malformed and denies access rather than silently allowing.
+  const container: unknown = credentials;
+  if (typeof container !== 'object' || Array.isArray(container)) return false;
   const { allow, deny } = credentials;
   const matchDeny = credentials.match_deny || 'any';
   const matchAllow = credentials.match_allow || 'all';
 
-  if (deny !== undefined && deny !== null) {
+  // A list that is set but is not an array (including `null`) denies access; a
+  // list that is absent (`undefined`) is treated as no restriction.
+  if (deny !== undefined) {
     if (!Array.isArray(deny)) return false;
     if (
       deny.length > 0 &&
@@ -162,7 +170,7 @@ export async function evaluateCredentials(
     }
   }
 
-  if (allow !== undefined && allow !== null) {
+  if (allow !== undefined) {
     if (!Array.isArray(allow)) return false;
     if (allow.length > 0) {
       return evaluateCredentialList(
