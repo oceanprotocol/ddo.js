@@ -16,6 +16,12 @@ import {
   invalidDeprecatedDDO,
   validEnterpriseDDOV5
 } from '../data/ddo.js';
+import { buildShortDdo } from '../../utils/ddo.js';
+import { deriveDid } from '../../utils/did.js';
+
+const SHORT_NFT = '0xBB1081DbF3227bbB233Db68f7117114baBb43656';
+// Other suites mutate the shared fixture, so keep the copy taken at import time.
+const DEPRECATED_DDO = structuredClone(deprecatedDDO);
 
 describe('DDOManager Validation Tests', () => {
   it('should validate a valid V4 DDO successfully', async () => {
@@ -37,14 +43,63 @@ describe('DDOManager Validation Tests', () => {
     expect(validationResult[1]).to.eql({});
   });
 
+  it('should validate a Deprecated DDO (short DDO)', async () => {
+    const validationResult = await validateDDO(structuredClone(DEPRECATED_DDO));
+    expect(validationResult[0]).to.eql(true);
+    expect(validationResult[1]).to.eql({});
+  });
+
   it('should fail Deprecated DDO validation due to extra fields', async () => {
     const invalidCopy = JSON.parse(JSON.stringify(invalidDeprecatedDDO));
     const validationResult = await validateDDO(invalidCopy);
     expect(validationResult[0]).to.eql(false);
-    console.log('validation fails: ', JSON.stringify(validationResult[1]));
-    expect(JSON.stringify(validationResult[1].general)).to.include(
-      '["Validation failed: Error: Expected entity but got eof on line 35."]'
+    expect(validationResult[1]).to.have.property('credentials');
+  });
+
+  it('should validate v4 and v5 short DDOs built by buildShortDdo', async () => {
+    for (const version of ['4', '5'] as const) {
+      const id = deriveDid(SHORT_NFT, 8996, version);
+      const fullDdo =
+        version === '4'
+          ? { id, version: '4.1.0', chainId: 8996, nftAddress: SHORT_NFT }
+          : {
+              id,
+              version: '5.0.0',
+              credentialSubject: { chainId: 8996, nftAddress: SHORT_NFT }
+            };
+      const shortDdo = buildShortDdo(fullDdo, 8996, 2);
+      expect(shortDdo.id).to.equal(id);
+      const validationResult = await validateDDO(
+        shortDdo as unknown as Record<string, unknown>
+      );
+      expect(validationResult, `v${version}`).to.eql([true, {}]);
+    }
+  });
+
+  it('should fail Deprecated DDO validation for an id not derived from the NFT', async () => {
+    const otherNft = deriveDid(
+      '0x0000000000000000000000000000000000000001',
+      137,
+      '5'
     );
+    for (const id of [
+      otherNft,
+      DEPRECATED_DDO.id.toUpperCase().replace('DID:OP:', 'did:op:'),
+      'did:op:123'
+    ]) {
+      const validationResult = await validateDDO({ ...DEPRECATED_DDO, id });
+      expect(validationResult[0], id).to.eql(false);
+      expect(validationResult[1], id).to.have.property('id');
+    }
+  });
+
+  it('should fail Deprecated DDO validation without chainId, without throwing', async () => {
+    const { chainId, ...withoutChainId } = DEPRECATED_DDO;
+    expect(chainId).to.equal(137);
+    const validationResult = await validateDDO(withoutChainId);
+    expect(validationResult[0]).to.eql(false);
+    expect(validationResult[1]).to.have.property('chainId');
+    expect(validationResult[1]).not.to.have.property('general');
   });
 
   it('should validate a valid V5 DDO successfully (Verifiable Credential)', async () => {

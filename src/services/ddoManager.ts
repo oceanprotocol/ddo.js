@@ -22,7 +22,12 @@ import {
   CredentialResolver,
   evaluateCredentials
 } from '../utils/credentials.js';
-import { DID_PREFIX_V4, DID_PREFIX_V5, hashDid } from '../utils/did.js';
+import {
+  DID_PREFIX_V4,
+  DID_PREFIX_V5,
+  hashDid,
+  matchesDid
+} from '../utils/did.js';
 import { SCHEMAS } from '../schemas/index.js';
 
 const CURRENT_VERSION = '5.0.0';
@@ -675,9 +680,10 @@ export class DeprecatedDDO extends DDOManager {
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
     const extraErrors: Record<string, string[]> = {};
+    const SCHEMA_VOCAB = 'http://schema.org/';
 
     ddoCopy['@type'] = 'DDO';
-    ddoCopy['@context'] = { '@vocab': 'http://schema.org/' };
+    ddoCopy['@context'] = { '@vocab': SCHEMA_VOCAB };
 
     if (!chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
@@ -689,24 +695,21 @@ export class DeprecatedDDO extends DDOManager {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
+    // A short DDO keeps the id of the asset it replaces: did:op: for v4,
+    // did:ope: for v5 (see buildShortDdo). The id prefix picks the formula.
+    if (!matchesDid(ddoCopy.id, nftAddress, chainId)) {
       extraErrors.id = ['did is not valid for chain Id and nft address'];
     }
 
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
     if (!report) return [false, extraErrors];
 
-    if (report.conforms) return [true, {}];
-
-    for (const result of report.results) {
-      const key = result.path?.value.replace('http://schema.org/', '');
-      if (key) {
-        if (!(key in extraErrors)) extraErrors[key] = [];
-        extraErrors[key].push(fromRdf(result.message[0]));
-      }
+    if (!report.conforms) {
+      this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
+      extraErrors.fullReport = report.dataset.toString();
     }
-    extraErrors.fullReport = report.dataset.toString();
-    return [false, extraErrors];
+    if (Object.keys(extraErrors).length > 0) return [false, extraErrors];
+    return [true, {}];
   }
 }
 

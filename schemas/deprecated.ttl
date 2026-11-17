@@ -5,12 +5,16 @@
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+# Short DDO stored when an asset's metadata state leaves Active
+# (see buildShortDdo). indexedMetadata is stripped before validation.
 schema:DDOShape
     sh:targetClass schema:DDO ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
     sh:property [
         sh:path schema:id ;
         sh:datatype xsd:string ;
-        sh:pattern "^did\\:op\\:(.*)$" ;
+        sh:pattern "^did:ope?:[0-9a-f]{64}$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;
@@ -29,7 +33,7 @@ schema:DDOShape
     sh:property [
         sh:path schema:version ;
         sh:datatype xsd:string ;
-        sh:pattern "^deprecated" ;
+        sh:pattern "^deprecated$" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-    ] ;
+    ] .
