@@ -178,8 +178,53 @@ describe('DDOManager', () => {
 
       expect(assetFields).to.eql({
         indexedMetadata: expectedIndexedMetadata,
-        datatokens: null
+        datatokens: undefined
       });
+    });
+
+    it('should not mutate the stored DDO when reading asset fields', () => {
+      const indexedDdo = {
+        ...structuredClone(deprecatedDDO),
+        indexedMetadata: {
+          event: {
+            txid: '0xabc',
+            block: 12345,
+            from: '0x282d8efce846a88b159800bd4130ad77443fa1a1',
+            contract: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
+            datetime: '2025-01-01T00:00:00Z'
+          },
+          purgatory: { state: false, reason: '' },
+          stats: [{ orders: 1 }],
+          nft: {
+            state: 5,
+            address: '0xBB1081DbF3227bbB233Db68f7117114baBb43656',
+            name: 'Ocean Data NFT',
+            symbol: 'OCEAN-NFT',
+            owner: '0x282d8efce846a88b159800bd4130ad77443fa1a1',
+            created: '2025-01-01T00:00:00Z',
+            tokenURI: 'data:'
+          }
+        }
+      };
+      const before = structuredClone(indexedDdo);
+      const instance = DDOManager.getDDOClass(indexedDdo) as DeprecatedDDO;
+
+      const assetFields = instance.getAssetFields();
+
+      expect(assetFields.indexedMetadata.event).to.equal(null);
+      expect(assetFields.indexedMetadata.nft.state).to.equal(5);
+      expect(instance.getDDOData()).to.eql(before);
+    });
+
+    it('should not throw on a Deprecated DDO without indexedMetadata', () => {
+      const bare: Record<string, any> = structuredClone(deprecatedDDO);
+      delete bare.indexedMetadata;
+      const instance = DDOManager.getDDOClass(bare) as DeprecatedDDO;
+
+      const assetFields = instance.getAssetFields();
+
+      expect(assetFields.indexedMetadata.nft.state).to.equal(undefined);
+      expect(instance.getDDOData()).to.not.have.property('indexedMetadata');
     });
 
     it('should update DDO fields for V4 DDO', () => {

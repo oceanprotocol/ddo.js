@@ -254,7 +254,6 @@ export abstract class DDOManager {
    * @returns `true` if the asset can be ordered.
    */
   public isOrderable(): boolean {
-    // Read the raw data: DeprecatedDDO.getAssetFields() mutates indexedMetadata.
     const state: unknown = this.getDDOData()?.indexedMetadata?.nft?.state;
     return state === State.Active || state === State.AssetUnlisted;
   }
@@ -649,23 +648,26 @@ export class DeprecatedDDO extends DDOManager {
     };
   }
 
+  // Returns a new object: the stored DDO keeps its indexedMetadata.
   getAssetFields(): AssetFields {
-    const { indexedMetadata } = this.getDDOData();
-    indexedMetadata.event = null;
-    indexedMetadata.purgatory = null;
-    indexedMetadata.stats = null;
-    indexedMetadata.nft = {
-      state: this.getDDOData().indexedMetadata.nft.state,
-      address: null,
-      name: null,
-      symbol: null,
-      owner: null,
-      created: null,
-      tokenURI: null
-    };
+    const indexedMetadata = this.getDDOData()?.indexedMetadata;
     return {
-      indexedMetadata,
-      datatokens: null
+      indexedMetadata: {
+        ...indexedMetadata,
+        event: null,
+        purgatory: null,
+        stats: null,
+        nft: {
+          state: indexedMetadata?.nft?.state,
+          address: null,
+          name: null,
+          symbol: null,
+          owner: null,
+          created: null,
+          tokenURI: null
+        }
+      },
+      datatokens: undefined
     };
   }
 
