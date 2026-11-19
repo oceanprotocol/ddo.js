@@ -8,6 +8,9 @@
   "umd:main": "./dist/ddo.umd.js",
   "module": "./dist/ddo.js",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "exports": {
     ".": {
       "require": {
