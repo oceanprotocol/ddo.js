@@ -1,6 +1,6 @@
 {
   "name": "@oceanprotocol/ddo-js",
-  "version": "1.1.0-next.1",
+  "version": "1.1.0",
   "repository": "https://github.com/oceanprotocol/ddo.js.git",
   "author": "Ocean Protocol <devops@oceanprotocol.com>",
   "license": "Apache-2.0",
