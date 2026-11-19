@@ -1,10 +1,13 @@
-import { getAddress, sha256, toUtf8Bytes } from 'ethers';
+import { getAddress } from 'ethers';
 import { fromRdf } from 'rdf-literal';
 import { Parser as N3Parser, Store } from 'n3';
 import jsonld from 'jsonld';
 import { AssetFields } from '../@types/AssetTypes.js';
+import { Credentials as CredentialsV4 } from '../@types/DDO4/Credentials.js';
 import { Service as ServiceV4 } from '../@types/DDO4/Service.js';
+import { Credentials as CredentialsV5 } from '../@types/DDO5/Credential.js';
 import { Service as ServiceV5 } from '../@types/DDO5/Service.js';
+import { State } from '../@types/DDO5/State.js';
 import {
   CredentialSubject,
   DDOFields,
@@ -13,17 +16,40 @@ import {
   VersionedDDO
 } from '../@types/index.js';
 import { getSHACLValidator } from '../utils/importUtils.js';
+import { stripIndexedMetadata, SUPPORTED_VERSIONS } from '../utils/ddo.js';
+import {
+  ConsumerAccess,
+  CredentialResolver,
+  evaluateCredentials
+} from '../utils/credentials.js';
+import {
+  DID_PREFIX_V4,
+  DID_PREFIX_V5,
+  hashDid,
+  matchesDid
+} from '../utils/did.js';
 import { SCHEMAS } from '../schemas/index.js';
 
 const CURRENT_VERSION = '5.0.0';
-const ALLOWED_VERSIONS = [
-  '4.1.0',
-  '4.3.0',
-  '4.5.0',
-  '4.7.0',
-  '5.0.0',
-  'deprecated'
-];
+
+/**
+ * Creates an empty `indexedMetadata` when an update writes to it and the DDO
+ * has none, so `updateFields({ indexedMetadata: {} })` initialises it.
+ */
+function ensureIndexedMetadata(
+  data: Record<string, any>,
+  fields: UpdateFields
+): void {
+  if (
+    fields.indexedMetadata &&
+    typeof fields.indexedMetadata === 'object' &&
+    (typeof data.indexedMetadata !== 'object' || data.indexedMetadata === null)
+  ) {
+    data.indexedMetadata = {};
+  }
+}
+
+const ALLOWED_VERSIONS: readonly string[] = SUPPORTED_VERSIONS;
 
 export abstract class DDOManager {
   private ddoData: Record<string, any>;
@@ -88,6 +114,16 @@ export abstract class DDOManager {
   }
 
   /**
+   * Reads the raw asset-level credentials from the right v4/v5 path, without
+   * the `|| null` normalization of `getDDOFields()`, so malformed falsy values
+   * (`false`, `0`, `""`) reach the credential evaluator and are refused.
+   * A deprecated DDO has no credentials.
+   */
+  protected getRawAssetCredentials(): unknown {
+    return undefined;
+  }
+
+  /**
    * Method to retrieve the DID.
    * @returns The DID of ddo.
    */
@@ -95,15 +131,137 @@ export abstract class DDOManager {
     return this.getDDOData().id || null;
   }
 
+  /**
+   * Returns the services of the DDO, or an empty array when there are none.
+   */
+  private getServiceList(): (ServiceV4 | ServiceV5)[] {
+    const services: unknown = this.getDDOFields()?.services;
+    return Array.isArray(services) ? services : [];
+  }
+
+  /**
+   * Finds a service by its id.
+   * @param id - The service id.
+   * @returns The service, or `undefined` when not found.
+   */
+  public getService(id: string): ServiceV4 | ServiceV5 | undefined {
+    if (typeof id !== 'string') return undefined;
+    return this.getServiceList().find((service) => service?.id === id);
+  }
+
+  /**
+   * Finds the position of a service by its id.
+   * @param id - The service id.
+   * @returns The index of the service, or `-1` when not found.
+   */
+  public getServiceIndex(id: string): number {
+    if (typeof id !== 'string') return -1;
+    return this.getServiceList().findIndex((service) => service?.id === id);
+  }
+
+  /**
+   * Returns the service at a given position.
+   * @param index - The service index.
+   * @returns The service, or `undefined` when the index is out of range.
+   */
+  public getServiceByIndex(index: number): ServiceV4 | ServiceV5 | undefined {
+    if (!Number.isInteger(index) || index < 0) return undefined;
+    return this.getServiceList()[index] ?? undefined;
+  }
+
+  /**
+   * Finds the first service whose datatoken address matches, ignoring letter case.
+   * @param datatokenAddress - The datatoken address.
+   * @returns The service, or `undefined` when not found.
+   */
+  public getServiceByDatatoken(
+    datatokenAddress: string
+  ): ServiceV4 | ServiceV5 | undefined {
+    if (typeof datatokenAddress !== 'string') return undefined;
+    const address = datatokenAddress.toLowerCase();
+    return this.getServiceList().find(
+      (service) =>
+        typeof service?.datatokenAddress === 'string' &&
+        service.datatokenAddress.toLowerCase() === address
+    );
+  }
+
+  /**
+   * Returns the asset-level and service-level credentials, read from the right
+   * v4/v5 path. The two are returned separately and never merged: how they
+   * combine is an access rule left to the caller.
+   * The returned objects belong to the DDO; do not mutate them.
+   * @param serviceId - The service id. When omitted, `service` is `undefined`.
+   * @returns `asset` and `service` credentials, `undefined` when absent.
+   */
+  public getCredentials(serviceId?: string): {
+    asset: CredentialsV4 | CredentialsV5 | undefined;
+    service: CredentialsV4 | CredentialsV5 | undefined;
+  } {
+    // Malformed values are returned as they are, so the evaluator refuses them.
+    const asset = (this.getRawAssetCredentials() ?? undefined) as
+      CredentialsV4 | CredentialsV5 | undefined;
+    const service = (serviceId === undefined
+      ? undefined
+      : (this.getService(serviceId)?.credentials ?? undefined)) as unknown as
+      CredentialsV4 | CredentialsV5 | undefined;
+    return { asset, service };
+  }
+
+  /**
+   * Decides whether a consumer may access the asset and, when `serviceId` is
+   * given, that service: the asset-level credentials are checked first, then the
+   * service-level ones. Both must allow. Missing credentials allow.
+   * Same order as ocean-node's download and compute handlers.
+   * @param consumerAddress - The consumer address.
+   * @param serviceId - The service id. Omit for an asset-level check only.
+   * @param resolve - Checks rule types other than `address`, e.g. `accessList`.
+   * @returns `{ allowed: true }`, or the level and reason of the refusal.
+   * @throws TypeError when `consumerAddress` is not a string. Resolver errors
+   * propagate.
+   */
+  public async isConsumerAllowed(
+    consumerAddress: string,
+    serviceId?: string,
+    resolve?: CredentialResolver
+  ): Promise<ConsumerAccess> {
+    if (typeof consumerAddress !== 'string') {
+      throw new TypeError('isConsumerAllowed expects a consumer address');
+    }
+    const { asset } = this.getCredentials();
+    if (!(await evaluateCredentials(consumerAddress, asset, resolve))) {
+      return { allowed: false, level: 'asset', reason: 'denied' };
+    }
+    if (serviceId === undefined) return { allowed: true };
+
+    if (!this.getService(serviceId)) {
+      return { allowed: false, level: 'service', reason: 'service-not-found' };
+    }
+    const { service } = this.getCredentials(serviceId);
+    if (!(await evaluateCredentials(consumerAddress, service, resolve))) {
+      return { allowed: false, level: 'service', reason: 'denied' };
+    }
+    return { allowed: true };
+  }
+
+  /**
+   * Checks whether the NFT state allows ordering: Active (0) or Unlisted (5).
+   * Returns `false` when `indexedMetadata.nft.state` is missing.
+   *
+   * `indexedMetadata` is written by the indexer, not the publisher. A DDO handed
+   * in by a client can claim any state, so only a DDO read from a trusted
+   * indexer gives a trustworthy answer.
+   * @returns `true` if the asset can be ordered.
+   */
+  public isOrderable(): boolean {
+    const state: unknown = this.getDDOData()?.indexedMetadata?.nft?.state;
+    return state === State.Active || state === State.AssetUnlisted;
+  }
+
   public deleteIndexedMetadataIfExists(
     ddo: Record<string, any>
   ): Record<string, any> {
-    const ddoCopy: Record<string, any> = structuredClone(ddo);
-    if ('indexedMetadata' in ddoCopy) {
-      delete ddoCopy.indexedMetadata;
-      return ddoCopy;
-    }
-    return ddo;
+    return stripIndexedMetadata(ddo);
   }
 
   /**
@@ -227,9 +385,7 @@ export class V4DDO extends DDOManager {
   }
 
   makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:op:' + sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
-    );
+    return hashDid(DID_PREFIX_V4, nftAddress, chainId);
   }
 
   getDDOFields(): DDOFields {
@@ -245,6 +401,10 @@ export class V4DDO extends DDOManager {
     };
   }
 
+  protected getRawAssetCredentials(): unknown {
+    return this.getDDOData().credentials;
+  }
+
   getAssetFields(): AssetFields {
     return {
       indexedMetadata: this.getDDOData().indexedMetadata,
@@ -253,6 +413,7 @@ export class V4DDO extends DDOManager {
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
+    ensureIndexedMetadata(this.getDDOData(), fields);
     if (fields.id) this.getDDOData().id = fields.id;
     if (fields.nftAddress) this.getDDOData().nftAddress = fields.nftAddress;
     if (fields.chainId) this.getDDOData().chainId = fields.chainId;
@@ -311,11 +472,13 @@ export class V4DDO extends DDOManager {
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
     if (!report) return [false, extraErrors];
 
-    if (report.conforms) return [true, {}];
-
-    this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
-    extraErrors.fullReport = report.dataset.toString();
-    return [false, extraErrors];
+    // The checks above (chainId, nftAddress, id) count even when SHACL conforms.
+    if (!report.conforms) {
+      this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
+      extraErrors.fullReport = report.dataset.toString();
+    }
+    if (Object.keys(extraErrors).length > 0) return [false, extraErrors];
+    return [true, {}];
   }
 }
 
@@ -326,10 +489,7 @@ export class V5DDO extends DDOManager {
   }
 
   makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:ope:' +
-      sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
-    );
+    return hashDid(DID_PREFIX_V5, nftAddress, chainId);
   }
 
   getDDOFields(): CredentialSubject {
@@ -343,6 +503,10 @@ export class V5DDO extends DDOManager {
       credentials: data.credentialSubject?.credentials || null,
       nftAddress: data.credentialSubject?.nftAddress || null
     };
+  }
+
+  protected getRawAssetCredentials(): unknown {
+    return this.getDDOData().credentialSubject?.credentials;
   }
 
   getAssetFields(): AssetFields {
@@ -361,6 +525,7 @@ export class V5DDO extends DDOManager {
   }
 
   updateFields(fields: UpdateFields): Record<string, any> {
+    ensureIndexedMetadata(this.getDDOData(), fields);
     const credentialSubject = this.getDDOData().credentialSubject || {};
     if (fields.id) this.getDDOData().id = fields.id;
     if (fields.nftAddress) credentialSubject.nftAddress = fields.nftAddress;
@@ -450,11 +615,13 @@ export class V5DDO extends DDOManager {
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
     if (!report) return [false, extraErrors];
 
-    if (report.conforms) return [true, {}];
-
-    this.collectShaclViolations(report.results, extraErrors, VC_VOCAB);
-    extraErrors.fullReport = report.dataset.toString();
-    return [false, extraErrors];
+    // The checks above (chainId, nftAddress, id) count even when SHACL conforms.
+    if (!report.conforms) {
+      this.collectShaclViolations(report.results, extraErrors, VC_VOCAB);
+      extraErrors.fullReport = report.dataset.toString();
+    }
+    if (Object.keys(extraErrors).length > 0) return [false, extraErrors];
+    return [true, {}];
   }
 }
 
@@ -465,9 +632,7 @@ export class DeprecatedDDO extends DDOManager {
   }
 
   makeDid(nftAddress: string, chainId: string): string {
-    return (
-      'did:op:' + sha256(toUtf8Bytes(getAddress(nftAddress) + chainId)).slice(2)
-    );
+    return hashDid(DID_PREFIX_V4, nftAddress, chainId);
   }
 
   getDDOFields(): DDOFields {
@@ -483,23 +648,26 @@ export class DeprecatedDDO extends DDOManager {
     };
   }
 
+  // Returns a new object: the stored DDO keeps its indexedMetadata.
   getAssetFields(): AssetFields {
-    const { indexedMetadata } = this.getDDOData();
-    indexedMetadata.event = null;
-    indexedMetadata.purgatory = null;
-    indexedMetadata.stats = null;
-    indexedMetadata.nft = {
-      state: this.getDDOData().indexedMetadata.nft.state,
-      address: null,
-      name: null,
-      symbol: null,
-      owner: null,
-      created: null,
-      tokenURI: null
-    };
+    const indexedMetadata = this.getDDOData()?.indexedMetadata;
     return {
-      indexedMetadata,
-      datatokens: null
+      indexedMetadata: {
+        ...indexedMetadata,
+        event: null,
+        purgatory: null,
+        stats: null,
+        nft: {
+          state: indexedMetadata?.nft?.state,
+          address: null,
+          name: null,
+          symbol: null,
+          owner: null,
+          created: null,
+          tokenURI: null
+        }
+      },
+      datatokens: undefined
     };
   }
 
@@ -518,9 +686,10 @@ export class DeprecatedDDO extends DDOManager {
     const ddoCopy = JSON.parse(JSON.stringify(updatedDdo));
     const { chainId, nftAddress } = ddoCopy;
     const extraErrors: Record<string, string[]> = {};
+    const SCHEMA_VOCAB = 'http://schema.org/';
 
     ddoCopy['@type'] = 'DDO';
-    ddoCopy['@context'] = { '@vocab': 'http://schema.org/' };
+    ddoCopy['@context'] = { '@vocab': SCHEMA_VOCAB };
 
     if (!chainId) {
       extraErrors.chainId = ['chainId is missing or invalid.'];
@@ -532,24 +701,21 @@ export class DeprecatedDDO extends DDOManager {
       extraErrors.nftAddress = ['nftAddress is missing or invalid.'];
     }
 
-    if (this.makeDid(nftAddress, chainId.toString(10)) !== ddoCopy.id) {
+    // A short DDO keeps the id of the asset it replaces: did:op: for v4,
+    // did:ope: for v5 (see buildShortDdo). The id prefix picks the formula.
+    if (!matchesDid(ddoCopy.id, nftAddress, chainId)) {
       extraErrors.id = ['did is not valid for chain Id and nft address'];
     }
 
     const report = await this.runShaclValidation(ddoCopy, extraErrors);
     if (!report) return [false, extraErrors];
 
-    if (report.conforms) return [true, {}];
-
-    for (const result of report.results) {
-      const key = result.path?.value.replace('http://schema.org/', '');
-      if (key) {
-        if (!(key in extraErrors)) extraErrors[key] = [];
-        extraErrors[key].push(fromRdf(result.message[0]));
-      }
+    if (!report.conforms) {
+      this.collectShaclViolations(report.results, extraErrors, SCHEMA_VOCAB);
+      extraErrors.fullReport = report.dataset.toString();
     }
-    extraErrors.fullReport = report.dataset.toString();
-    return [false, extraErrors];
+    if (Object.keys(extraErrors).length > 0) return [false, extraErrors];
+    return [true, {}];
   }
 }
 

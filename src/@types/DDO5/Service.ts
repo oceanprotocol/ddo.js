@@ -1,5 +1,6 @@
 import { ConsumerParameter } from './Algorithm.js';
 import { Compute } from './Compute.js';
+import { Credentials } from './Credential.js';
 import { LanguageValueObject, RemoteObject } from './Remote.js';
 import { State } from './State.js';
 
@@ -18,7 +19,7 @@ export interface Service {
   consumerParameters?: ConsumerParameter[];
   additionalInformation?: Record<string, string | number | boolean>;
   state: State;
-  credentials: Credential[];
+  credentials: Credentials;
   // Required if type asset
   dataSchema?: RemoteObject;
   // Required if type algorithm
